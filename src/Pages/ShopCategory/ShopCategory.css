@@ -1,0 +1,13 @@
+.filter-sort-grid {
+    padding: 10px;
+    background-color: white;
+    border-radius: 10px;
+}
+
+.grid-img {
+    background-color: #f2f2f2;
+    width: 35px;
+    height: 35px;
+    padding: 8px;
+    border-radius: 3px;
+}

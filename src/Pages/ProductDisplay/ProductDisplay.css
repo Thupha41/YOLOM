@@ -1,0 +1,26 @@
+.main-product-image{
+    background-color: white;
+    border-radius: 10px;
+    width: 100%; 
+    max-width: 400px;
+}
+
+
+.main-product-image img {
+    width: 100% !important;
+    height: 600px !important;
+    object-fit: cover;
+}
+
+
+.main-product-image .js-image-zoom__zoomed-image {
+    width: 500px;
+    height: 500px;
+    background-color: white;
+    border-radius: 10px;
+
+}
+
+.selected-thumbnail {
+    border: 2px solid black !important;  /* Override any other border settings */
+}

@@ -1,0 +1,37 @@
+.slick-slide>div {
+    margin: 0 30px;
+}
+  
+.slick-slide>div:nth-child(1){
+  margin-left: 0;
+}
+  
+.slick-list {
+  margin-right: -30px;
+}
+
+.product-slider {
+    margin: 0 auto;
+}
+
+.product-slider .slick-prev, 
+.product-slider .slick-next {
+    z-index: 1;
+}
+
+.product-slider .slick-prev {
+    left: -25px;
+}
+
+.product-slider .slick-next {
+    right: -25px;
+}
+
+.product-slider .slick-prev:before, 
+.product-slider .slick-next:before {
+    color: black;
+}
+
+.product-slider .slick-slide > div {
+    padding: 10px;
+}

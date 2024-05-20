@@ -1,0 +1,25 @@
+.slick-slide>div {
+    margin: 0 30px;
+}
+  
+.slick-slide>div:nth-child(1){
+  margin-left: 0;
+}
+  
+.slick-list {
+  margin-right: -30px;
+}
+
+.product-slider .slick-dots {
+  position: absolute;
+  top: -50px;
+  right: 0;
+  width: auto;
+  padding: 10px 0;
+  list-style: none;
+}
+
+.slick-dots {
+  margin:0;
+  text-align: center;
+}

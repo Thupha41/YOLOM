@@ -1,0 +1,13 @@
+.text-custom-color {
+  color: #005A8C; /* Replace with your desired color */
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+
