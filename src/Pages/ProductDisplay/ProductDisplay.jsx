@@ -1,20 +1,20 @@
-import React, { useContext, useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
-import { IoMdStar } from 'react-icons/io';
-import { ShopContext } from '../../context/ShopContext';
-import ReactImageZoom from 'react-image-zoom';
-import './ProductDisplay.css';
-import { Link } from 'react-router-dom';
-import formatNumber from '../../utils/formatCurrency';
-import { addRecentlyViewedProduct } from '../../utils/recentlyViewed';
-
+import React, { useContext, useState, useEffect } from "react";
+import PropTypes from "prop-types";
+import { IoMdStar } from "react-icons/io";
+import { ShopContext } from "../../context/ShopContext";
+import ReactImageZoom from "react-image-zoom";
+import "./ProductDisplay.css";
+import { Link } from "react-router-dom";
+import formatNumber from "../../utils/formatCurrency";
+import { addRecentlyViewedProduct } from "../../utils/recentlyViewed";
+import LoginModal from "../../components/Popup/LoginModal/LoginModal";
 const ProductDisplay = (props) => {
   const { product } = props;
   const { addToCart, cartItems, all_product } = useContext(ShopContext);
   const thumbnails = product.sku_image.map((url) => url.trim());
   const [mainImage, setMainImage] = useState(thumbnails[0]);
   const [quantity, setQuantity] = useState(1);
-
+  const [showLoginModal, setShowLoginModal] = useState(false);
   useEffect(() => {
     addRecentlyViewedProduct(product); // Add the product to the recently viewed list
     if (!thumbnails.includes(mainImage)) {
@@ -39,25 +39,36 @@ const ProductDisplay = (props) => {
 
   const productInCart = cartItems[product.id] || 0;
   const currentProduct = all_product.find((p) => p.product_id === product.id);
-  const isOutOfStock = currentProduct && productInCart >= currentProduct.Product.product_quantity;
+  const isOutOfStock =
+    currentProduct && productInCart >= currentProduct.Product.product_quantity;
 
   const handleQuantityChange = (e) => {
     setQuantity(e.target.value);
   };
 
   const handleAddToCart = () => {
-    addToCart(product.product_id, quantity);
+    const accessToken = localStorage.getItem("auth-token");
+    if (!accessToken) {
+      showLoginModal(true);
+    } else {
+      addToCart(product.product_id, quantity);
+    }
   };
 
   return (
-    <div data-aos="fade-up" className="flex flex-col lg:flex-row mt-10 ml-0 lg:ml-[170px] mb-10 px-4">
+    <div
+      data-aos="fade-up"
+      className="flex flex-col lg:flex-row mt-10 ml-0 lg:ml-[170px] mb-10 px-4"
+    >
       <div className="flex flex-col lg:flex-row gap-4 mb-4 lg:mb-0">
         {/* 4 hình nhỏ kế bên main image */}
         <div className="hidden sm:flex flex-col gap-4">
           {thumbnails.map((url, index) => (
             <img
               key={index}
-              className={`h-[120px] object-cover cursor-pointer ${url === mainImage ? 'selected-thumbnail' : ''}`}
+              className={`h-[120px] object-cover cursor-pointer ${
+                url === mainImage ? "selected-thumbnail" : ""
+              }`}
               src={url}
               alt=""
               onClick={() => handleThumbnailClick(url)}
@@ -75,8 +86,12 @@ const ProductDisplay = (props) => {
       {/* Product information */}
       <div className="mt-0 ml-[70px] flex flex-col w-full lg:w-auto">
         {/* Title and detailed section */}
-        <h1 className="font-bold text-2xl lg:text-[30px] mb-4">{product.Product.Brand.name}</h1>
-        <h2 className="font-semibold text-xl lg:text-[20px]">{product.Product.product_name}</h2>
+        <h1 className="font-bold text-2xl lg:text-[30px] mb-4">
+          {product.Product.Brand.name}
+        </h1>
+        <h2 className="font-semibold text-xl lg:text-[20px]">
+          {product.Product.product_name}
+        </h2>
 
         {/* Ratings */}
         <div className="flex mt-2">
@@ -87,9 +102,12 @@ const ProductDisplay = (props) => {
 
         {/* Price */}
         <div className="flex mt-4">
-          <div className="text-gray-500 line-through mr-2">{product.oldPrice}</div>
+          <div className="text-gray-500 line-through mr-2">
+            {product.oldPrice}
+          </div>
           <div className="text-red-500 text-xl font-bold">
-            {formatNumber(product.Product.product_price)} <span lang="vi">đ</span>
+            {formatNumber(product.Product.product_price)}{" "}
+            <span lang="vi">đ</span>
           </div>
         </div>
         <div>{product.sku_color}</div>
@@ -98,7 +116,7 @@ const ProductDisplay = (props) => {
         <div className="mt-5">
           <h3 className="text-gray-600 text-lg font-semibold">Select size</h3>
           <div className="flex mt-3 justify-center gap-2">
-            {['S', 'M', 'L', 'XL', 'XXL'].map((size) => (
+            {["S", "M", "L", "XL", "XXL"].map((size) => (
               <div
                 key={size}
                 className="py-1 px-4 bg-gray-300 border border-gray-300 cursor-pointer text-black hover:text-white hover:bg-black transition-colors duration-300 ease-in-out"
@@ -110,10 +128,15 @@ const ProductDisplay = (props) => {
         </div>
 
         {/* Quantity input */}
-        <div className="bg-white border border-gray-200 rounded-lg dark:bg-neutral-900 dark:border-neutral-700 my-10" data-hs-input-number="">
+        <div
+          className="bg-white border border-gray-200 rounded-lg dark:bg-neutral-900 dark:border-neutral-700 my-10"
+          data-hs-input-number=""
+        >
           <div className="w-full flex justify-between items-center gap-x-1">
             <div className="grow py-2 px-3">
-              <span className="block text-xs text-gray-500 dark:text-neutral-400">Select quantity</span>
+              <span className="block text-xs text-gray-500 dark:text-neutral-400">
+                Select quantity
+              </span>
               <input
                 className="w-full p-0 bg-transparent border-0 text-gray-800 focus:ring-0 dark:text-white"
                 type="number"
@@ -128,7 +151,18 @@ const ProductDisplay = (props) => {
                 data-hs-input-number-decrement=""
                 onClick={() => setQuantity(quantity > 1 ? quantity - 1 : 1)}
               >
-                <svg className="flex-shrink-0 size-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  className="flex-shrink-0 size-3.5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M5 12h14"></path>
                 </svg>
               </button>
@@ -138,7 +172,18 @@ const ProductDisplay = (props) => {
                 data-hs-input-number-increment=""
                 onClick={() => setQuantity(quantity + 1)}
               >
-                <svg className="flex-shrink-0 size-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  className="flex-shrink-0 size-3.5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M5 12h14"></path>
                   <path d="M12 5v14"></path>
                 </svg>
@@ -150,7 +195,9 @@ const ProductDisplay = (props) => {
         {/* ADD TO CART button */}
         <div className="flex justify-center mr-[75px] mt-2">
           {isOutOfStock ? (
-            <button className="w-full sm:w-[300px] text-[16px] h-14 font-semibold text-gray-500 bg-gray-300 cursor-not-allowed">OUT OF STOCK</button>
+            <button className="w-full sm:w-[300px] text-[16px] h-14 font-semibold text-gray-500 bg-gray-300 cursor-not-allowed">
+              OUT OF STOCK
+            </button>
           ) : (
             <button
               onClick={handleAddToCart}

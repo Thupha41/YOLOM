@@ -1,0 +1,40 @@
+/* Standard keyframes */
+@keyframes bounce {
+    0% {
+        transform: scale(1, 1) translate(0px, 0px);
+    }
+    30% {
+        transform: scale(1, 0.8) translate(0px, 10px);
+    }
+    75% {
+        transform: scale(1, 1.1) translate(0px, -25px);
+    }
+    100% {
+        transform: scale(1, 1) translate(0px, 0px);
+    }
+}
+
+/* Webkit keyframes */
+@-webkit-keyframes bounce {
+    0% {
+        -webkit-transform: scale(1, 1) translate(0px, 0px);
+    }
+    30% {
+        -webkit-transform: scale(1, 0.8) translate(0px, 10px);
+    }
+    75% {
+        -webkit-transform: scale(1, 1.1) translate(0px, -25px);
+    }
+    100% {
+        -webkit-transform: scale(1, 1) translate(0px, 0px);
+    }
+}
+
+.bounce {
+    height: 20px;
+    padding: 20px;  
+    /* Standard animation property */
+    animation: bounce 1s infinite;
+    /* Webkit animation property for older browsers */
+    -webkit-animation: bounce 1s infinite;
+}
