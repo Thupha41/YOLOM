@@ -1,114 +1,205 @@
-import React from 'react';
-
+import React from "react";
+import { FaEye } from "react-icons/fa";
+import { GoGoal } from "react-icons/go";
+import { IoDiamond } from "react-icons/io5";
+import PhatDat from "../../assets/Members/PhatDat.jpg";
+import Phat from "../../assets/Members/Phat.jpg";
+import Dat from "../../assets/Members/Dat.jpg";
 const AboutUs = () => {
+  const iconStyle = {
+    display: "inline-flex",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100px",
+    height: "100px",
+    backgroundColor: "#9c27b0",
+    color: "white",
+    fontWeight: "bold",
+    fontSize: "24px",
+    clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+    margin: "10px",
+  };
+  const sectionStyle = {
+    display: "flex",
+    justifyContent: "space-around",
+    alignItems: "center",
+    padding: "50px 0",
+    color: "white",
+    background: "linear-gradient(to right, #b24592, #f15f79)",
+  };
 
-    const iconStyle = {
-        display: 'inline-flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: '100px',
-        height: '100px',
-        backgroundColor: '#9c27b0',
-        color: 'white',
-        fontWeight: 'bold',
-        fontSize: '24px',
-        clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-        margin: '10px'
-    };
-    const sectionStyle = {
-        display: 'flex',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        padding: '50px 0',
-        color: 'white',
-        background: 'linear-gradient(to right, #b24592, #f15f79)', // Example gradient background
-    };
+  const columnStyle = {
+    flexBasis: "30%",
+    textAlign: "center",
+  };
 
-    const columnStyle = {
-        flexBasis: '30%', 
-        textAlign: 'center',
-    };
-    const gridContainerStyle = {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-        gap: '20px',
-        padding: '20px',
-        backgroundColor: '#fff' // or any background color you want
-    };
   return (
     <div>
-        {/* Header section  */}
-        <div className="relative bg-cover bg-no-repeat bg-center" style={{ backgroundImage: 'url(/path-to-your-background-image.jpg)' }}>
-            <div className="absolute inset-0 bg-black opacity-50"></div>
-                <div className="container mx-auto px-4 py-20 relative">
-                    <h1 className="text-white font-bold text-4xl md:text-6xl text-center">
-                        YOLOM
-                    </h1>
-                    <p className="text-white text-lg md:text-xl text-center mt-4">
-                        The leading distributor of international fashion brands in Vietnam.
-                    </p>
-                    <div style={{ textAlign: 'center', marginTop: '50px' }}>
-                    <div style={iconStyle}>Y</div>
-                    <div style={iconStyle}>O</div>
-                    <div style={iconStyle}>L</div>
-                    <div style={iconStyle}>O</div>
-                    <div style={iconStyle}>M</div>
-                </div>
-            </div>
-        </div>
-        {/* Content section  */}
-        <div className="bg-pattern bg-cover bg-fixed text-white p-10 text-center relative">
-            <div className="absolute inset-0 bg-dark-overlay" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}></div>
-            <div className="relative z-10">
-                <h1 className="text-5xl font-bold mb-4">About us</h1>
-                <hr className="border-2 border-white mx-auto w-40 mb-4" />
-                <p className="mb-4">
-                    YOLOM - A member of the UIT O21 Group, is a distributor managing leading international fashion brands in Vietnam. With a network of over 270 stores in major urban centers across the country, YOLOM is on a mission to bring Vietnamese closer to the fashion capital of luxury. At YOLOM, we provide genuine luxury shopping services, accompanied by exclusive privileges for members and VIP customers, showcasing over 24+ international fashion brands. YOLOM aims to bring a fresh breeze to fashion enthusiasts who appreciate beauty and aspire to spread their passion for fashion within the community.
-                </p>
-                <p>
-                    The exclusive brands distributed by YOLOM in the Vietnamese market include Mango, Levi&apos;s, Gap, Old Navy, Banana Republic, Cotton:On.
-                </p>
-            </div>
-        </div>
-        <div style={sectionStyle}>
-            {/* Column 1 */}
-            <div style={columnStyle}>
-                <div style={iconStyle}>A</div>
-                <h2>Tầm nhìn</h2>
-                    <p>Trở thành công ty dịch vụ & bán lẻ hàng đầu Đông Nam Á và là nơi hội tụ những tài năng sáng giá của khu vực.</p>
-            </div>
-            {/* Column 2 */}
-            <div style={columnStyle}>
-                <div style={iconStyle}>C</div>
-                <h2>Sứ mệnh</h2>
-                    <p>Trở thành đối tác bán lẻ số Một tại Việt Nam cho các thương hiệu hàng đầu trên thế giới.</p>
-            </div>
-            {/* Column 3 */}
-            <div style={columnStyle}>
-                <div style={iconStyle}>F</div>
-                <h2>Giá trị cốt lõi</h2>
-                    <p>Chính Trực, Con Người, Tôn Trọng, Trách Nhiệm, Chuyên Nghiệp, Kết Quả.</p>
-            </div>
-        </div>
-        {/* New grid gallery section */}
-        <div style={{ textAlign: 'center', padding: '40px 0' }}>
-            <h2>Chúng tôi là ai?</h2>
-            <p lang='vi'>
-                Hình thành từ năm 2009, ACFC tự hào là nhà phân phối các thương hiệu thời trang quốc tế hàng đầu Việt Nam,
-                mang người Việt đến gần hơn với thời trang hiệu, đồng hành cùng UIT Group
-                “Chọn để dẫn đầu”
-            </p>
-            <div style={gridContainerStyle}>
-            {/* Repeat this div for each image you want to display */}
-            <div>
-            <img src="/path-to-your-image.jpg" alt="Description" style={{ width: '100%', height: 'auto' }} />
-            {/* Add image description or caption here if needed */}
+      {/* Header section  */}
+      <div className="relative bg-cover bg-no-repeat bg-center bg-[#0586db]">
+        <div className="absolute inset-0 bg-black opacity-50"></div>
+        <div className="container mx-auto px-4 py-20 relative">
+          <h1 className="text-white font-bold text-4xl md:text-6xl text-center font-cursive text-shadow-custom">
+            YOLOM
+          </h1>
+          <p className="text-lg md:text-xl text-center mt-4 text-white">
+            The leading distributor of international fashion brands in Vietnam.
+          </p>
+          <div style={{ textAlign: "center", marginTop: "50px" }}>
+            <div style={iconStyle}>Y</div>
+            <div style={iconStyle}>O</div>
+            <div style={iconStyle}>L</div>
+            <div style={iconStyle}>O</div>
+            <div style={iconStyle}>M</div>
           </div>
-          {/* ...other images */}
+        </div>
+      </div>
+      {/* Content section  */}
+      <div className="2xl:container 2xl:mx-auto lg:py-16 lg:px-20 md:py-12 md:px-6 py-9 px-4">
+        <div className="flex flex-col lg:flex-row justify-between gap-8">
+          <div className="w-full lg:w-5/12 flex flex-col justify-center">
+            <h1 className="font-cursive text-black text-6xl text-shadow-custom lg:text-4xl font-bold leading-9 pb-4">
+              About Us
+            </h1>
+            <p className="font-normal text-base leading-6 text-gray-600 ">
+              YOLOM - A member of the UIT O21 Group, is a distributor managing
+              leading international fashion brands in Vietnam. YOLOM is on a
+              mission to bring Vietnamese closer to the fashion capital of
+              luxury. At YOLOM, we provide genuine luxury shopping services,
+              accompanied by exclusive privileges for members and VIP customers,
+              showcasing over 24+ international fashion brands. YOLOM aims to
+              bring a fresh breeze to fashion enthusiasts who appreciate beauty
+              and aspire to spread their passion for fashion within the
+              community.
+            </p>
+            <p className="font-normal text-base leading-6 text-gray-600 mt-6">
+              YOLOM brands are exclusively distributed in the Vietnamese market
+              such as Nike, Mango, Levi&apos;s, Gap, Old Navy, Calvin Klein,
+              Tommy Hilfiger, Mothercare, OVS, Banana Republic, Owndays, French
+              Connection, Parfois, Cotton:On, Typo , Dockers, Sunnies Studios,
+              Swarovski, Guess, Sisley, Karl Lagerfeld, United Colors of
+              Benetton, Polo Ralph Lauren, Sunnies Face.
+            </p>
+          </div>
+          <div className="w-full lg:w-8/12 ">
+            <img
+              className="h-[530px] w-full object-cover"
+              src={PhatDat}
+              alt="A group of People"
+            />
+          </div>
+        </div>
+
+        <div className="flex lg:flex-row flex-col justify-between gap-8 pt-12">
+          <div className="w-full lg:w-5/12 flex flex-col justify-center">
+            <h1 className="text-3xl lg:text-4xl font-bold leading-9 text-gray-800 pb-4 font-cursive text-shadow-custom">
+              Our Story
+            </h1>
+            <p className="font-normal text-base leading-6 text-gray-600 ">
+              Established in 2024, the milestone on the development journey was
+              marked at University of Information Technology - YOLOM&apos; first
+              store with a sole mission - to bring Vietnamese men completely
+              distributed brands the best. On that journey, we realized fashion
+              has the ability to empower and satisfy men everywhere.
+              Circumstances, consistent with the dynamic context of the new era.
+              Over the past 2 months, YOLOM has existed with a system of more
+              than 4 stores nationwide, accompanying hundreds of thousands of
+              Vietnamese beauties, we are still aiming for more perfection every
+              day to continue on. journey to shape a youthful and elegant style
+              for modern men. YOLOM hopes that each &quot;work&quot; created
+              will contribute to the confidence, happiness and enjoyment of life
+              to the fullest for contemporary men.
+            </p>
+          </div>
+          <div className="w-full lg:w-8/12 lg:pt-8">
+            <div className="grid md:grid-cols-4 sm:grid-cols-2 grid-cols-1 lg:gap-4 shadow-lg rounded-md">
+              <div className="p-4 pb-6 flex justify-center flex-col items-center">
+                <img
+                  className="md:block hidden"
+                  src={Phat}
+                  alt="Alexa featured Img"
+                />
+                <p className="font-medium text-lg leading-5 text-gray-800 mt-4">
+                  Ngô Thuận Phát
+                </p>
+              </div>
+              {/* <div className="p-4 pb-6 flex justify-center flex-col items-center">
+                <img
+                  className="md:block hidden"
+                  src="https://i.ibb.co/fGmxhVy/Rectangle-119.png"
+                  alt="Olivia featured Img"
+                />
+                <p className="font-medium text-lg leading-5 text-gray-800 mt-4">
+                  Võ Thị Thu Tiên
+                </p>
+              </div>
+              <div className="p-4 pb-6 flex justify-center flex-col items-center">
+                <img
+                  className="md:block hidden"
+                  src="https://i.ibb.co/Pc6XVVC/Rectangle-120.png"
+                  alt="Liam featued Img"
+                />
+                <p className="font-medium text-lg leading-5 text-gray-800 mt-4">
+                  Nhật Anh
+                </p>
+              </div> */}
+              <div className="p-4 pb-6 flex justify-center flex-col items-center">
+                <img
+                  className="md:block hidden"
+                  src={Dat}
+                  alt="Elijah featured img"
+                />
+                <p className="font-medium text-lg leading-5 text-gray-800 mt-4">
+                  Đặng Thành Đạt
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style={sectionStyle}>
+        {/* Column 1 */}
+        <div style={columnStyle}>
+          <div style={iconStyle}>
+            <FaEye className="h-10 w-10" />
+          </div>
+          <h1 className="font-cursive text-white text-3xl text-shadow-custom">
+            Vision
+          </h1>
+          <p className="mt-4">
+            To become Southeast Asia&apos;s leading retail & service company and
+            a gathering place for the region&apos;s brightest talents.
+          </p>
+        </div>
+        {/* Column 2 */}
+        <div style={columnStyle}>
+          <div style={iconStyle}>
+            <GoGoal className="h-10 w-10" />
+          </div>
+          <h1 className="font-cursive text-white text-3xl text-shadow-custom">
+            Mission
+          </h1>
+          <p className="mt-4">
+            Become the number one retail partner in Vietnam for brands top in
+            the world.
+          </p>
+        </div>
+        {/* Column 3 */}
+        <div style={columnStyle}>
+          <div style={iconStyle}>
+            <IoDiamond className="h-10 w-10" />
+          </div>
+          <h1 className="font-cursive text-white text-3xl text-shadow-custom">
+            Core values
+          </h1>
+          <p className="mt-4">
+            Integrity, People, Respect, Responsibility, Professionalism,
+            Results.
+          </p>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default AboutUs;

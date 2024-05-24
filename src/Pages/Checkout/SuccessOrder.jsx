@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { ShopContext } from "../../context/ShopContext";
+import formatNumber from "../../utils/formatCurrency";
 const SuccessOrder = () => {
   // Navigate
   const navigate = useNavigate();
-
+  const { orderData } = useContext(ShopContext);
   const handleNavigateToOrderHistory = () => {
     window.scrollTo(0, 0);
     navigate("/account", { state: { activeSection: "orderHistory" } });
+    window.location.reload();
   };
 
   return (
@@ -80,29 +82,36 @@ const SuccessOrder = () => {
             </p>
           </div>
           <div className="w-full max-w-sm">
-            <div className="p-4">
-              <div className="grid gap-2 text-sm">
-                <div className="flex justify-between">
-                  <div>Order number</div>
-                  <div className="ml-2 font-medium">#123456</div>
-                </div>
-                <div className="flex justify-between">
-                  <div>Date</div>
-                  <div className="ml-2 font-medium">March 29, 2024</div>
-                </div>
-                <div className="flex justify-between">
-                  <div>Total</div>
-                  <div className="ml-2 font-medium">$129.00</div>
+            {/* Mapping through orderData */}
+            {/* {orderData.map((order, index) => (
+              <div key={index} className="p-4">
+                <div className="grid gap-2 text-sm">
+                  <div className="flex justify-between">
+                    <div>Order number</div>
+                    <div className="ml-2 font-medium">
+                      #{order.order_id.slice(0, 7)}
+                    </div>
+                  </div>
+                  <div className="flex justify-between">
+                    <div>Date</div>
+                    <div className="ml-2 font-medium">{order.updatedAt}</div>
+                  </div>
+                  <div className="flex justify-between">
+                    <div>Total</div>
+                    <div className="ml-2 font-medium">
+                      {formatNumber(order.order_final_price)}đ
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            ))} */}
             <div className="p-4">
               <button
-                className="w-full"
+                className="w-full bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
                 type="submit"
                 onClick={handleNavigateToOrderHistory}
               >
-                View my account
+                Check my order
               </button>
             </div>
           </div>

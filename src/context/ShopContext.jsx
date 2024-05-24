@@ -1,7 +1,13 @@
-import React, { createContext, useState, useEffect, useCallback } from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import axios from "axios";
 import PropTypes from "prop-types";
-
+import ToastNotification from "../components/Popup/ToastNotification/ToastNotification";
 export const ShopContext = createContext(null);
 
 const getInitialCart = () => {
@@ -41,12 +47,12 @@ const ShopContextProvider = ({ children }) => {
   const [orderPhone, setOrderPhone] = useState("");
   const [orderName, setOrderName] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("cod");
-
+  const [orderData, setOrderData] = useState([]);
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(
-          "https://api.yourrlove.com/v1/web/products"
+          "https://api.yourrlove.com/v1/web/products?limit=36&offset=0"
         );
         setAll_Product(response.data.metadata);
         console.log(response.data.metadata);
@@ -69,6 +75,7 @@ const ShopContextProvider = ({ children }) => {
       );
       setCartItems(response.data.metadata);
       console.log(response.data.metadata);
+      localStorage.setItem("cart", JSON.stringify(response.data.metadata));
     } catch (error) {
       console.error("Failed to fetch cart items", error);
     }
@@ -80,83 +87,85 @@ const ShopContextProvider = ({ children }) => {
     }
   }, [cartId, fetchCartItems]);
 
-  useEffect(() => {
-    // Update local storage when cartItems changes
-    localStorage.setItem("cart", JSON.stringify(cartItems));
-  }, [cartItems]);
+  const addToCart = useCallback(
+    async (itemId, quantity) => {
+      const product = all_product.find((p) => p.product_id === itemId);
+      if (!product) return;
 
-  const addToCart = async (itemId, quantity) => {
-    const product = all_product.find((p) => p.product_id === itemId);
-    if (!product) return;
-
-    try {
-      const response = await axios.post(
-        "https://api.yourrlove.com/v1/web/cart/add_to_cart",
-        {
-          sku_id: product.sku_id,
-          product_id: itemId,
-          quantity,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("auth-token")}`,
+      try {
+        const response = await axios.post(
+          "https://api.yourrlove.com/v1/web/cart/add_to_cart",
+          {
+            sku_id: product.sku_id,
+            product_id: itemId,
+            quantity,
           },
-        }
-      );
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("auth-token")}`,
+            },
+          }
+        );
 
-      console.log(response.data);
-      if (!cartId) {
-        setCartId(response.data.metadata.cart_id);
-        localStorage.setItem("cartId", response.data.metadata.cart_id);
+        console.log(response.data);
+        if (!cartId) {
+          setCartId(response.data.metadata.cart_id);
+          localStorage.setItem("cartId", response.data.metadata.cart_id);
+        }
+
+        setCartItems((prevCartItems) => {
+          const itemIndex = prevCartItems.findIndex(
+            (item) => item.product_id === itemId
+          );
+          if (itemIndex !== -1) {
+            prevCartItems[itemIndex].quantity += quantity;
+          } else {
+            prevCartItems.push({
+              ...response.data.metadata,
+              ProductDetail: product,
+            });
+          }
+          return [...prevCartItems];
+        });
+      } catch (error) {
+        console.error("Failed to add to cart", error);
       }
+    },
+    [all_product, cartId]
+  );
 
-      setCartItems((prevCartItems) => {
-        const itemIndex = prevCartItems.findIndex(
-          (item) => item.product_id === itemId
+  const removeFromCart = useCallback(
+    async (sku_id) => {
+      try {
+        const response = await axios.delete(
+          `https://api.yourrlove.com/v1/web/cart/${cartId}/cartitem/${sku_id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("auth-token")}`,
+            },
+            param: {
+              productdetailId: sku_id,
+              cartId: cartId,
+            },
+          }
         );
-        if (itemIndex !== -1) {
-          prevCartItems[itemIndex].quantity += quantity;
-        } else {
-          prevCartItems.push({
-            ...response.data.metadata,
-            ProductDetail: product,
-          });
-        }
-        return [...prevCartItems];
-      });
-    } catch (error) {
-      console.error("Failed to add to cart", error);
-    }
-  };
+        console.log(response.data);
 
-  const removeFromCart = async (sku_id) => {
-    try {
-      const response = await axios.delete(
-        `https://api.yourrlove.com/v1/web/cart/${cartId}/cartitem/${sku_id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("auth-token")}`,
-          },
-          param: {
-            productdetailId: sku_id,
-            cartId: cartId,
-          },
-        }
-      );
-      console.log(response.data);
-
-      // Update cart state based on response
-      setCartItems((prevCartItems) => {
-        const newCartItems = prevCartItems.filter(
-          (item) => item.sku_id !== sku_id
-        );
-        localStorage.setItem("cart", JSON.stringify(newCartItems));
-        return newCartItems;
-      });
-    } catch (error) {
-      console.error("Failed to remove item from cart", error);
-    }
-  };
+        // Update cart state based on response
+        setCartItems((prevCartItems) => {
+          const newCartItems = prevCartItems.filter(
+            (item) => item.sku_id !== sku_id
+          );
+          localStorage.setItem("cart", JSON.stringify(newCartItems));
+          return newCartItems;
+        });
+        ToastNotification("remove from cart successfully", "success");
+      } catch (error) {
+        console.error("Failed to remove item from cart", error);
+      }
+    },
+    [cartId]
+  );
 
   const fetchTotalCartAmount = useCallback(
     async (discountCode = "") => {
@@ -226,8 +235,10 @@ const ShopContextProvider = ({ children }) => {
   );
 
   useEffect(() => {
-    fetchTotalCartAmount(discountCode);
-  }, [cartItems, fetchTotalCartAmount, discountCode]);
+    if (cartId) {
+      fetchTotalCartAmount(discountCode);
+    }
+  }, [cartId, discountCode, fetchTotalCartAmount]);
 
   useEffect(() => {
     localStorage.setItem("discountCode", discountCode);
@@ -251,34 +262,96 @@ const ShopContextProvider = ({ children }) => {
     orderPhone,
   ]);
 
-  const getTotalCartItems = () => {
+  const getTotalCartItems = useCallback(() => {
     return cartItems.reduce((total, item) => total + item.quantity, 0);
-  };
+  }, [cartItems]);
 
-  const contextValue = {
-    getTotalCartItems,
-    totalCartAmount,
-    all_product,
-    cartItems,
-    addToCart,
-    removeFromCart,
-    setCartItems,
-    fetchTotalCartAmount,
-    setDiscountCode,
-    discountCode,
-    discountAmount,
-    finalTotalAmount,
-    shippingPrice,
-    orderDistrict,
-    orderProvince,
-    orderStreet,
-    orderWard,
-    orderName,
-    orderPhone,
-    selectedPaymentMethod,
-    setSelectedPaymentMethod,
-    cartId,
-  };
+  const fetchProductDetails = useCallback(async (sku_id) => {
+    try {
+      const response = await axios.get(
+        `https://api.yourrlove.com/v1/web/products/productdetails/${sku_id}`
+      );
+      return response.data.metadata;
+    } catch (error) {
+      console.error("Error fetching product details:", error);
+      return null;
+    }
+  }, []);
+  useEffect(() => {
+    const fetchOrderData = async () => {
+      try {
+        const token = localStorage.getItem("auth-token");
+        const response = await axios.get(
+          `https://api.yourrlove.com/v1/web/orders/?field=updatedAt&sort=DESC`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (response.data.statusCode === 200) {
+          setOrderData(response.data.metadata);
+        }
+      } catch (error) {
+        console.error("Error fetching Order Data", error);
+      }
+    };
+    fetchOrderData();
+  }, []);
+
+  const contextValue = useMemo(
+    () => ({
+      getTotalCartItems,
+      totalCartAmount,
+      all_product,
+      cartItems,
+      addToCart,
+      removeFromCart,
+      setCartItems,
+      fetchTotalCartAmount,
+      setDiscountCode,
+      discountCode,
+      discountAmount,
+      finalTotalAmount,
+      shippingPrice,
+      orderDistrict,
+      orderProvince,
+      orderStreet,
+      orderWard,
+      orderName,
+      orderPhone,
+      selectedPaymentMethod,
+      setSelectedPaymentMethod,
+      cartId,
+      fetchProductDetails,
+      orderData,
+    }),
+    [
+      getTotalCartItems,
+      totalCartAmount,
+      all_product,
+      cartItems,
+      addToCart,
+      removeFromCart,
+      setCartItems,
+      fetchTotalCartAmount,
+      setDiscountCode,
+      discountCode,
+      discountAmount,
+      finalTotalAmount,
+      shippingPrice,
+      orderDistrict,
+      orderProvince,
+      orderStreet,
+      orderWard,
+      orderName,
+      orderPhone,
+      selectedPaymentMethod,
+      cartId,
+      fetchProductDetails,
+      orderData,
+    ]
+  );
 
   return (
     <ShopContext.Provider value={contextValue}>{children}</ShopContext.Provider>

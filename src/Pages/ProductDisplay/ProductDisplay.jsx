@@ -4,17 +4,17 @@ import { IoMdStar } from "react-icons/io";
 import { ShopContext } from "../../context/ShopContext";
 import ReactImageZoom from "react-image-zoom";
 import "./ProductDisplay.css";
-import { Link } from "react-router-dom";
 import formatNumber from "../../utils/formatCurrency";
 import { addRecentlyViewedProduct } from "../../utils/recentlyViewed";
-import LoginModal from "../../components/Popup/LoginModal/LoginModal";
+import ToastNotification from "../../components/Popup/ToastNotification/ToastNotification";
+
 const ProductDisplay = (props) => {
   const { product } = props;
   const { addToCart, cartItems, all_product } = useContext(ShopContext);
   const thumbnails = product.sku_image.map((url) => url.trim());
   const [mainImage, setMainImage] = useState(thumbnails[0]);
   const [quantity, setQuantity] = useState(1);
-  const [showLoginModal, setShowLoginModal] = useState(false);
+
   useEffect(() => {
     addRecentlyViewedProduct(product); // Add the product to the recently viewed list
     if (!thumbnails.includes(mainImage)) {
@@ -49,8 +49,9 @@ const ProductDisplay = (props) => {
   const handleAddToCart = () => {
     const accessToken = localStorage.getItem("auth-token");
     if (!accessToken) {
-      showLoginModal(true);
+      ToastNotification("Login before continuing", "warn");
     } else {
+      ToastNotification("Add to cart successfully", "success");
       addToCart(product.product_id, quantity);
     }
   };
@@ -89,7 +90,10 @@ const ProductDisplay = (props) => {
         <h1 className="font-bold text-2xl lg:text-[30px] mb-4">
           {product.Product.Brand.name}
         </h1>
-        <h2 className="font-semibold text-xl lg:text-[20px]">
+        <h2 className="font-regular text-base lg:text-[16px]">
+          SKU: {product.sku_no}
+        </h2>
+        <h2 className="font-semibold text-xl lg:text-[20px] mt-4">
           {product.Product.product_name}
         </h2>
 
@@ -110,10 +114,10 @@ const ProductDisplay = (props) => {
             <span lang="vi">đ</span>
           </div>
         </div>
-        <div>{product.sku_color}</div>
-
+        <div className="mt-4">Color: {product.sku_color}</div>
+        <div className="mt-4">Size: {product.sku_size}</div>
         {/* Size selection */}
-        <div className="mt-5">
+        {/* <div className="mt-5">
           <h3 className="text-gray-600 text-lg font-semibold">Select size</h3>
           <div className="flex mt-3 justify-center gap-2">
             {["S", "M", "L", "XL", "XXL"].map((size) => (
@@ -125,7 +129,7 @@ const ProductDisplay = (props) => {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Quantity input */}
         <div
@@ -208,16 +212,7 @@ const ProductDisplay = (props) => {
           )}
         </div>
 
-        {/* Checkout button */}
-        {/* <div className="flex justify-center mr-[75px] mt-2">
-          <Link to="/checkout">
-            <button className="w-full sm:w-[300px] text-[16px] h-14 font-semibold text-white mb-10 border-none text-center cursor-pointer bg-[#ff4141] mt-2 py-1 px-5 hover:text-white delay-150 ease-in-out duration-100 hover:scale-110 transition-colors hover:-translate-y-1">
-              CHECKOUT
-            </button>
-          </Link>
-        </div> */}
-
-        <p className="mt-4 text-gray-500">Category</p>
+        {/* <p className="mt-4 text-gray-500">Category</p> */}
       </div>
     </div>
   );
@@ -234,6 +229,8 @@ ProductDisplay.propTypes = {
     oldPrice: PropTypes.string.isRequired,
     current_unit_price: PropTypes.string.isRequired,
     Brand: PropTypes.string.isRequired,
+    sku_no: PropTypes.string,
+    sku_size: PropTypes.string,
   }).isRequired,
 };
 

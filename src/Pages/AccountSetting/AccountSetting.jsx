@@ -1,19 +1,26 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 import useUserData from "../../hooks/useUserData";
 import formatNumber from "../../utils/formatCurrency";
+import PopupViewProduct from "../../components/Popup/PopupViewProduct/PopupViewProduct";
+import ToastNotification from "../../components/Popup/ToastNotification/ToastNotification";
+import { ShopContext } from "../../context/ShopContext";
 const AccountSetting = () => {
   const location = useLocation();
   const username = useUserData();
   const [activeSection, setActiveSection] = useState("accounts");
-
-  // Set active section based on navigation state
+  const [openPopupOrderId, setOpenPopupOrderId] = useState(null);
+  const { orderData } = useContext(ShopContext);
   useEffect(() => {
-    if (location.state && location.state.activeSection) {
+    const searchParams = new URLSearchParams(location.search);
+    const section = searchParams.get("activeSection");
+    if (section) {
+      setActiveSection(section);
+    } else if (location.state && location.state.activeSection) {
       setActiveSection(location.state.activeSection);
     }
-  }, [location.state]);
+  }, [location]);
 
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -23,7 +30,7 @@ const AccountSetting = () => {
   const [selectedWard, setSelectedWard] = useState("");
   const [address, setAddress] = useState("");
   const [isEditing, setIsEditing] = useState(false);
-  const [orderData, setOrderData] = useState([]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -36,28 +43,6 @@ const AccountSetting = () => {
       }
     };
     fetchData();
-  }, []);
-
-  useEffect(() => {
-    const fetchOrderData = async () => {
-      try {
-        const token = localStorage.getItem("auth-token");
-        const response = await axios.get(
-          `https://api.yourrlove.com/v1/web/orders/?field=order_status&sort=DESC`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (response.data.statusCode === 200) {
-          setOrderData(response.data.metadata);
-        }
-      } catch (error) {
-        console.error("Error fetching Order Data", error);
-      }
-    };
-    fetchOrderData();
   }, []);
 
   useEffect(() => {
@@ -174,9 +159,11 @@ const AccountSetting = () => {
           },
         }
       );
+      ToastNotification("Address has been saved", "success");
       console.log("Address saved:", response.data);
     } catch (error) {
       console.error("Error saving address:", error);
+      ToastNotification("Already have default address", "error");
       if (error.response) {
         console.error("Response data:", error.response.data);
         console.error("Response status:", error.response.status);
@@ -190,9 +177,9 @@ const AccountSetting = () => {
   };
 
   return (
-    <div className="mx-4 min-h-screen max-w-screen-xl sm:mx-8 xl:mx-auto">
+    <div className="mx-4 min-h-screen max-w-screen-xl sm:mx-8 xl:mx-auto mb-20">
       <h1 className="border-b py-6 text-4xl font-semibold">Settings</h1>
-      <div className="grid grid-cols-8 pt-3 sm:grid-cols-10">
+      <div className="grid grid-cols-8 pt-3 sm:grid-cols-10 lg:overflow-y-auto lg:sticky lg:h-[calc(100vh-60px)]">
         <div className="relative my-4 w-56 sm:hidden">
           <input
             className="peer hidden"
@@ -390,19 +377,23 @@ const AccountSetting = () => {
                             {formatNumber(order.order_final_price)} đ
                           </td>
                           <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                            <button className="rounded bg-blue-700 px-4 py-2 text-white">
+                            <button
+                              className="rounded bg-blue-700 px-4 py-2 text-white"
+                              onClick={() =>
+                                setOpenPopupOrderId(order.order_id)
+                              }
+                            >
                               View Details
                             </button>
+                            {openPopupOrderId === order.order_id && (
+                              <PopupViewProduct
+                                orderId={order.order_id}
+                                setIsOpenPopup={setOpenPopupOrderId}
+                              />
+                            )}
                           </td>
                         </tr>
                       ))}
-                      {/* <tr>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                          <button className="rounded bg-blue-700 px-4 py-2 text-white">
-                            View Details
-                          </button>
-                        </td>
-                      </tr> */}
                       {/* Repeat similar <tr> for more orders */}
                     </tbody>
                   </table>

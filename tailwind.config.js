@@ -5,10 +5,25 @@ export default {
   darkMode: "class",
   theme: {
     extend: {
-      fontFamily:{
+      fontFamily: {
         spartan: "League+Spartan",
+        cursive: [
+          "Cursive",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          '"Segoe UI"',
+          "Roboto",
+          "Oxygen",
+          "Ubuntu",
+          "Cantarell",
+          '"Open Sans"',
+          '"Helvetica Neue"',
+          "sans-serif",
+        ],
       },
-
+      textShadow: {
+        custom: "1px 1px 20px rgba(41, 41, 41, 0.5)",
+      },
       colors: {
         primary: "#fea928",
         secondary: "#ed8900",

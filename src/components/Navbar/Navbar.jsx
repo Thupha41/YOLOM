@@ -1,12 +1,6 @@
-import React, {
-  useRef,
-  useContext,
-  useState,
-  useEffect,
-  Fragment,
-} from "react";
+import React, { useRef, useContext, useState, Fragment } from "react";
 import Logo from "../../assets/logo.png";
-import { IoMdSearch } from "react-icons/io";
+import SearchBar from "../SearchBar/SearchBar";
 import { FaCartShopping } from "react-icons/fa6";
 import { FaCaretDown } from "react-icons/fa";
 import { FaUser } from "react-icons/fa";
@@ -21,7 +15,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import QuantityUpdate from "../QuantityUpdate/QuantityUpdate";
 import { FaRegTrashCan } from "react-icons/fa6";
-
+import { SearchResultsList } from "../SearchResultList/SearchResultsList";
 const Menu = [
   {
     id: 1,
@@ -137,7 +131,6 @@ const Navbar = () => {
   const menuRef = useRef();
   const [open, setOpen] = useState(false);
   const totalItems = getTotalCartItems();
-
   const toggleCartPanel = () => {
     setOpen((prev) => !prev);
   };
@@ -147,7 +140,7 @@ const Navbar = () => {
   };
 
   const username = useUserData();
-
+  const [results, setResults] = useState([]);
   return (
     <div className="relative shadow-md bg-white dark:bg-gray-900 dark:text-white duration-200 z-10">
       {/* upper Navbar */}
@@ -171,15 +164,10 @@ const Navbar = () => {
 
           {/* search bar */}
           <div className="flex justify-between items-center gap-4">
-            <div className="relative group hidden sm:block">
-              <input
-                type="text"
-                placeholder="search"
-                className="w-[200px] sm:w-[200px] group-hover:w-[300px] transition-all duration-300 rounded-full border border-gray-300 px-2 py-1 focus:outline-none focus:border-1 focus:border-primary dark:border-gray-500 dark:bg-gray-800"
-              />
-              <IoMdSearch className="text-gray-500 group-hover:text-primary absolute top-1/2 -translate-y-1/2 right-3" />
-            </div>
-
+            <SearchBar />
+            {results && results.length > 0 && (
+              <SearchResultsList results={results} />
+            )}
             {/* notification button */}
             <div>
               <button
@@ -214,7 +202,8 @@ const Navbar = () => {
                       <ul className="text-sm mb-4 list-disc pl-5">
                         <li>
                           <Link
-                            to="/orders"
+                            to="/account"
+                            state={{ activeSection: "orderHistory" }}
                             className="text-blue-600 hover:underline text-[16px]"
                           >
                             Orders
@@ -234,11 +223,9 @@ const Navbar = () => {
                             onClick={() => {
                               localStorage.removeItem("auth-token");
                               localStorage.removeItem("cart");
-                              localStorage.removeItem("cartId");
-                              localStorage.removeItem("discountCode");
+                              localStorage.removeItem("account-address");
                               localStorage.removeItem("checkout-data");
-                              localStorage.removeItem("discountAmount");
-                              localStorage.removeItem("recentlyViewedProducts");
+                              localStorage.removeItem("cartId");
                               window.location.replace("/");
                             }}
                           >

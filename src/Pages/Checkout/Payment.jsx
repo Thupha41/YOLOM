@@ -1,5 +1,4 @@
 import React, { useContext, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { ShopContext } from "../../context/ShopContext";
 import formatNumber from "../../utils/formatCurrency";
 import "./Payment.css";

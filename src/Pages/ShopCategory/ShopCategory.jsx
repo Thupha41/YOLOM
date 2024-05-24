@@ -18,6 +18,9 @@ const ShopCategory = (props) => {
   const location = useLocation();
   const [gridViewActive, setGridViewActive] = useState(true);
   const [listViewActive, setListViewActive] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [productsPerPage, setProductsPerPage] = useState(24);
+  const [productsCount, setProductsCount] = useState(0);
 
   const toggleGridView = () => {
     setGridViewActive(true);
@@ -77,14 +80,14 @@ const ShopCategory = (props) => {
     const fetchData = async () => {
       try {
         const response = await axios.post(
-          "https://api.yourrlove.com/v1/web/products/filter",
+          "https://api.yourrlove.com/v1/web/products/filter?limit=36&offset=0",
           {
             filters: filters,
             sort: [sort.field, sort.order],
           }
         );
         setProducts(response.data.metadata);
-        console.log(response.data);
+        console.log("filter product", response.data);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
