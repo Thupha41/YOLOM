@@ -6,16 +6,37 @@ import ProductDisplay from "../ProductDisplay/ProductDisplay";
 import DescriptionBox from "../../components/DescriptionBox/DescriptionBox";
 import Newsletter from "../../components/NewSletters/Newsletter";
 import RecentlyViewedProducts from "../../components/RecentlyViewedProducts/RecentlyViewedProducts";
+import axios from "axios";
 
 const Product = () => {
   const { all_product } = useContext(ShopContext);
-
+  const [product, setProduct] = useState(null);
   const { Slug } = useParams();
-  const product = all_product.find((e) => e.sku_slug === Slug);
 
-  console.log(product);
-  console.log("SLug", Slug);
-  console.log("all_product", all_product);
+  useEffect(() => {
+    // Fetch product data when component mounts
+    const fetchProduct = async () => {
+      try {
+        // Find the product based on slug
+        const foundProduct = all_product.find(
+          (product) => product.sku_slug === Slug
+        );
+        if (foundProduct) {
+          // If product is found, fetch its details
+          const response = await axios.get(
+            `https://api.yourrlove.com/v1/web/products/productdetails/${foundProduct.sku_id}`
+          );
+          setProduct(response.data.metadata);
+        } else {
+          console.error("Product not found for slug:", Slug);
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      }
+    };
+    fetchProduct();
+  }, [Slug, all_product]);
+
   if (!product) {
     return (
       <div>

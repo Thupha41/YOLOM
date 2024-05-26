@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import Shipping from "./Shipping";
 import Payment from "./Payment";
 import SuccessOrder from "./SuccessOrder"; // Import the new component
-
 const HashCheckout = () => {
   const [currentHash, setCurrentHash] = useState(window.location.hash);
 

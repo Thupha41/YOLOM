@@ -5,7 +5,7 @@ import "aos/dist/aos.css";
 import Home from "./Pages/Home/Home";
 import Cart from "./Pages/Cart/Cart";
 import ShopCategory from "./Pages/ShopCategory/ShopCategory";
-import { Outlet, useParams } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import Footer from "./components/Footer/Footer";
 import AboutUs from "./Pages/AboutUs/AboutUs";
 import bannerImg4 from "./assets/slidingImg/bannerImg4.png";
@@ -15,7 +15,6 @@ import RegisterPage from "./Pages/LoginSignup/RegisterPage/RegisterPage";
 import LoginPage from "./Pages/LoginSignup/LoginPage/LoginPage";
 import CustomerSupportPage from "./Pages/CustomerSupportPage/CustomerSupportPage";
 import Contact from "./Pages/Contact/Contact";
-import Shipping from "./Pages/Checkout/Shipping";
 import HashCheckout from "./Pages/Checkout/HashCheckout";
 import AccountSetting from "./Pages/AccountSetting/AccountSetting";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
@@ -85,6 +84,16 @@ const router = createBrowserRouter([
           {
             path: ":Brand",
             element: <ShopCategory Tag="Sale" banner={bannerImg_MSS} />,
+          },
+        ],
+      },
+      {
+        path: "/all-product",
+        element: <ShopCategory banner={bannerImg4} title="New Arrival" />,
+        children: [
+          {
+            path: ":Brand",
+            element: <ShopCategory banner={bannerImg4} />,
           },
         ],
       },

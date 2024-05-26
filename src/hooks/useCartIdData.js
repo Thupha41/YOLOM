@@ -1,19 +1,20 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-const useUserData = () => {
-  const [username, setUsername] = useState("");
+const useCartIdData = () => {
+  const [cartId, setCartId] = useState("");
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const authToken = localStorage.getItem("auth-token");
         if (!authToken) {
-          setUsername("");
+          setCartId("");
           return;
         }
 
         const response = await axios.get(
           "https://api.yourrlove.com/v1/web/users/me",
+
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -21,19 +22,19 @@ const useUserData = () => {
           }
         );
         if (response.data.statusCode >= 200 && response.data.statusCode < 300) {
-          setUsername(response.data.metadata.name);
+          setCartId(response.data.metadata.cart.cart_id);
         } else {
-          setUsername("");
+          setCartId("");
         }
       } catch (error) {
         console.error("Failed to fetch user data:", error);
-        setUsername("");
+        setCartId("");
       }
     };
 
     fetchUserData();
   }, []);
-  return username;
+  return cartId;
 };
 
-export default useUserData;
+export default useCartIdData;

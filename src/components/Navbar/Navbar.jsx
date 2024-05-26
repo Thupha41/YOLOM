@@ -16,6 +16,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import QuantityUpdate from "../QuantityUpdate/QuantityUpdate";
 import { FaRegTrashCan } from "react-icons/fa6";
 import { SearchResultsList } from "../SearchResultList/SearchResultsList";
+
 const Menu = [
   {
     id: 1,
@@ -165,9 +166,7 @@ const Navbar = () => {
           {/* search bar */}
           <div className="flex justify-between items-center gap-4">
             <SearchBar />
-            {results && results.length > 0 && (
-              <SearchResultsList results={results} />
-            )}
+
             {/* notification button */}
             <div>
               <button
@@ -223,9 +222,8 @@ const Navbar = () => {
                             onClick={() => {
                               localStorage.removeItem("auth-token");
                               localStorage.removeItem("cart");
-                              localStorage.removeItem("account-address");
+                              // localStorage.removeItem("account-address");
                               localStorage.removeItem("checkout-data");
-                              localStorage.removeItem("cartId");
                               window.location.replace("/");
                             }}
                           >

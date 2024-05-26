@@ -17,7 +17,7 @@ const Shipping = () => {
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedWard, setSelectedWard] = useState("");
   const [wards, setWards] = useState([]);
-
+  const [deliveryInfo, setDeliveryInfo] = useState(null);
   // Error Messages
   const [errFirstName, setErrFirstName] = useState("");
   const [errLastName, setErrLastName] = useState("");
@@ -29,6 +29,20 @@ const Shipping = () => {
   const [districtError, setDistrictError] = useState(false);
   const [wardError, setWardError] = useState(false);
 
+  // localStorage section: store all the information that user input
+  const [checkoutData, setCheckoutData] = useState({
+    shippingAddressFormData: {
+      firstName: "",
+      lastName: "",
+      phone: "",
+      city: "",
+      district: "",
+      ward: "",
+      address: "",
+      email: "",
+    },
+  });
+
   const handleMessages = (e) => {
     setMessages(e.target.value);
   };
@@ -39,7 +53,12 @@ const Shipping = () => {
   };
 
   // Name Validation
-  const nameValidation = (name) => {
+  const firstNameValidation = (name) => {
+    return /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂễếệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/u.test(
+      name
+    );
+  };
+  const lastNameValidation = (name) => {
     return /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂễếệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/u.test(
       name
     );
@@ -66,123 +85,138 @@ const Shipping = () => {
   };
 
   // Fetch provinces and districts
+  const fetchProvinces = async () => {
+    try {
+      const response = await axios.get(
+        "https://raw.githubusercontent.com/kenzouno1/DiaGioiHanhChinhVN/master/data.json"
+      );
+      setProvinces(response.data);
+    } catch (error) {
+      console.error("Error fetching provinces data: ", error);
+    }
+  };
   useEffect(() => {
-    const fetchProvinces = async () => {
+    const fetchDeliveryInfo = async () => {
       try {
+        const token = localStorage.getItem("auth-token");
         const response = await axios.get(
-          "https://raw.githubusercontent.com/kenzouno1/DiaGioiHanhChinhVN/master/data.json"
+          "https://api.yourrlove.com/v1/web/orders/deliveryinfor",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
-        setProvinces(response.data);
+        const data = response.data.metadata;
+        setDeliveryInfo(data);
+        if (data.personal_detail) {
+          setCheckoutData({
+            shippingAddressFormData: {
+              firstName: data.personal_detail.first_name || "",
+              lastName: data.personal_detail.last_name || "",
+              phone: data.personal_detail.phone_number || "",
+              email: data.personal_detail.email || "",
+              city: data.shipping_address
+                ? data.shipping_address.province_city
+                : "",
+              district: data.shipping_address
+                ? data.shipping_address.district
+                : "",
+              ward: data.shipping_address ? data.shipping_address.ward : "",
+              address: data.shipping_address
+                ? data.shipping_address.street
+                : "",
+            },
+          });
+          setSelectedProvince(
+            data.shipping_address ? data.shipping_address.province_city : ""
+          );
+          setSelectedDistrict(
+            data.shipping_address ? data.shipping_address.district : ""
+          );
+          setSelectedWard(
+            data.shipping_address ? data.shipping_address.ward : ""
+          );
+        }
       } catch (error) {
-        console.error("Error fetching provinces data: ", error);
+        console.error("Error fetching delivery information:", error);
       }
     };
 
-    const fetchDeliveryInfo = async () => {
-      const token = localStorage.getItem("auth-token");
-      if (token) {
-        try {
-          const response = await axios.get(
-            "https://api.yourlove.com/v1/web/orders/deliveryinfor",
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
+    fetchDeliveryInfo();
+    fetchProvinces();
+  }, []);
+  useEffect(() => {
+    // Assuming provinces are already fetched and available
+    if (selectedProvince) {
+      const foundProvince = provinces.find(
+        (province) => province.Name === selectedProvince
+      );
+      if (foundProvince) {
+        setDistricts(foundProvince.Districts);
+        if (selectedDistrict) {
+          const foundDistrict = foundProvince.Districts.find(
+            (district) => district.Name === selectedDistrict
           );
-          const data = response.data.metadata;
-          if (data) {
-            const city_id = data.shipping_address
-              ? data.shipping_address.province_city
-              : "";
-            const district_id = data.shipping_address
-              ? data.shipping_address.district
-              : "";
-            const ward_id = data.shipping_address
-              ? data.shipping_address.ward
-              : "";
-
-            const foundProvince = response.data.find(
-              (province) => province.Id === city_id
-            );
-            const cityName = foundProvince ? foundProvince.Name : "";
-
-            const foundDistrict = foundProvince?.Districts.find(
-              (district) => district.Id === district_id
-            );
-            const districtName = foundDistrict ? foundDistrict.Name : "";
-
-            const foundWard = foundDistrict?.Wards.find(
-              (ward) => ward.Id === ward_id
-            );
-            const wardName = foundWard ? foundWard.Name : "";
-
-            setCheckoutData({
-              shippingAddressFormData: {
-                city: cityName,
-                city_id: city_id,
-                district: districtName,
-                district_id: district_id,
-                first_name: data.personal_detail.first_name || "",
-                last_name: data.personal_detail.last_name || "",
-                phone: data.personal_detail.phone_number || "",
-                email_field: data.personal_detail.email || "",
-                address: data.shipping_address
-                  ? data.shipping_address.street
-                  : "",
-                ward: wardName,
-                ward_id: ward_id,
-              },
-            });
+          if (foundDistrict) {
+            setWards(foundDistrict.Wards);
           }
-        } catch (error) {
-          console.error("Error fetching delivery information: ", error);
         }
       }
-    };
+    }
+  }, [provinces, selectedProvince, selectedDistrict]);
 
-    fetchProvinces();
-    fetchDeliveryInfo();
-  }, []);
+  const handleProvinceChange = (e) => {
+    const provinceName = e.target.value;
+    setSelectedProvince(provinceName);
+    setCheckoutData({
+      ...checkoutData,
+      shippingAddressFormData: {
+        ...checkoutData.shippingAddressFormData,
+        city: provinceName,
+        district: "",
+        ward: "",
+      },
+    });
 
-  const handleProvinceChange = (event) => {
-    const selectedId = event.target.value;
-    setSelectedProvince(selectedId);
-    const foundProvince = provinces.find(
-      (province) => province.Id === selectedId
-    );
-    setDistricts(foundProvince ? foundProvince.Districts : []);
     setSelectedDistrict("");
-    setWards([]);
-    setProvinceError(false);
-    const cityName = foundProvince ? foundProvince.Name : "";
-    handleInputChange("city_id", selectedId);
-    handleInputChange("city", cityName);
-  };
-
-  const handleDistrictChange = (event) => {
-    const selectedId = event.target.value;
-    setSelectedDistrict(selectedId);
-    const foundDistrict = districts.find(
-      (district) => district.Id === selectedId
-    );
-    setWards(foundDistrict ? foundDistrict.Wards : []);
     setSelectedWard("");
-    setDistrictError(false);
-    const districtName = foundDistrict ? foundDistrict.Name : "";
-    handleInputChange("district_id", selectedId);
-    handleInputChange("district", districtName);
   };
 
-  const handleWardChange = (event) => {
-    const selectedId = event.target.value;
-    setSelectedWard(selectedId);
-    const foundWard = wards.find((ward) => ward.Id === selectedId);
-    const wardName = foundWard ? foundWard.Name : "";
-    handleInputChange("ward_id", selectedId);
-    handleInputChange("ward", wardName);
+  const handleDistrictChange = (e) => {
+    const districtName = e.target.value;
+    setSelectedDistrict(districtName);
+    setCheckoutData({
+      ...checkoutData,
+      shippingAddressFormData: {
+        ...checkoutData.shippingAddressFormData,
+        district: districtName,
+        ward: "",
+      },
+    });
+    setSelectedWard("");
+  };
+  const handleWardChange = (e) => {
+    const wardName = e.target.value;
+    setSelectedWard(wardName);
+    setCheckoutData({
+      ...checkoutData,
+      shippingAddressFormData: {
+        ...checkoutData.shippingAddressFormData,
+        ward: wardName,
+      },
+    });
   };
 
+  const handleInputChange = (field, value) => {
+    setCheckoutData((prevData) => ({
+      ...prevData,
+      shippingAddressFormData: {
+        ...prevData.shippingAddressFormData,
+        [field]: value,
+      },
+    }));
+  };
   // Function to render cart items
   const renderCartItems = () => {
     if (cartItems.length === 0) {
@@ -259,32 +293,15 @@ const Shipping = () => {
     });
   };
 
-  // localStorage section: store all the information that user input
-  const [checkoutData, setCheckoutData] = useState({
-    shippingAddressFormData: {
-      city: "",
-      city_id: "",
-      district: "",
-      district_id: "",
-      first_name: "",
-      last_name: "",
-      phone: "",
-      email_field: "",
-      address: "",
-      ward: "",
-      ward_id: "",
-    },
-  });
-
   // Restore data from localStorage whenever component loads
   useEffect(() => {
     const data = localStorage.getItem("checkout-data");
     if (data) {
       const formData = JSON.parse(data).shippingAddressFormData;
       setCheckoutData({ shippingAddressFormData: formData });
-      setSelectedProvince(formData.city_id);
-      setSelectedDistrict(formData.district_id);
-      setSelectedWard(formData.ward_id);
+      setSelectedProvince(formData.city);
+      setSelectedDistrict(formData.district);
+      setSelectedWard(formData.ward);
     }
   }, []);
 
@@ -292,64 +309,40 @@ const Shipping = () => {
     localStorage.setItem("checkout-data", JSON.stringify(checkoutData));
   }, [checkoutData]);
 
-  useEffect(() => {
-    // Assuming provinces are already fetched and available
-    if (selectedProvince) {
-      const foundProvince = provinces.find(
-        (province) => province.Id === selectedProvince
-      );
-      if (foundProvince) {
-        setDistricts(foundProvince.Districts);
-        if (selectedDistrict) {
-          const foundDistrict = foundProvince.Districts.find(
-            (district) => district.Id === selectedDistrict
-          );
-          if (foundDistrict) {
-            setWards(foundDistrict.Wards);
-          }
-        }
-      }
-    }
-  }, [provinces, selectedProvince, selectedDistrict]);
-
-  const handleInputChange = (field, value) => {
-    setCheckoutData((prevData) => ({
-      ...prevData,
-      shippingAddressFormData: {
-        ...prevData.shippingAddressFormData,
-        [field]: value,
-      },
-    }));
-    localStorage.setItem("checkout-data", JSON.stringify(checkoutData));
-  };
-
   // form validate
   const handleShippingForm = (e) => {
     e.preventDefault();
     let hasError = false;
-    if (!checkoutData.shippingAddressFormData.first_name) {
+    if (!checkoutData.shippingAddressFormData.firstName) {
       setErrFirstName("Required");
       hasError = true;
     } else if (
-      !nameValidation(checkoutData.shippingAddressFormData.first_name)
+      !firstNameValidation(checkoutData.shippingAddressFormData.firstName)
     ) {
       setErrFirstName("Invalid");
+      hasError = true;
+    } else {
+      setErrFirstName("");
     }
-    if (!checkoutData.shippingAddressFormData.last_name) {
-      setErrLastName("Required");
+    if (!checkoutData.shippingAddressFormData.lastName) {
+      setErrFirstName("Required");
       hasError = true;
     } else if (
-      !nameValidation(checkoutData.shippingAddressFormData.last_name)
+      !lastNameValidation(checkoutData.shippingAddressFormData.lastName)
     ) {
       setErrLastName("Invalid");
+      hasError = true;
+    } else {
+      setErrLastName("");
     }
-    if (!checkoutData.shippingAddressFormData.email_field) {
+    if (!checkoutData.shippingAddressFormData.email) {
       setErrEmail("Required");
       hasError = true;
-    } else if (
-      !emailValidation(checkoutData.shippingAddressFormData.email_field)
-    ) {
+    } else if (!emailValidation(checkoutData.shippingAddressFormData.email)) {
       setErrEmail("Invalid");
+      hasError = true;
+    } else {
+      setErrEmail("");
     }
     if (!checkoutData.shippingAddressFormData.phone) {
       setErrPhone("Required");
@@ -358,6 +351,9 @@ const Shipping = () => {
       setErrPhone(
         "Enter a valid phone number. It should start with 0 and contain 11 numbers"
       );
+      hasError = true;
+    } else {
+      setErrPhone("");
     }
     // Validate province
     if (!selectedProvince) {
@@ -389,10 +385,38 @@ const Shipping = () => {
       !addressValidation(checkoutData.shippingAddressFormData.address)
     ) {
       setErrAddress("Invalid");
+      hasError = true;
+    } else {
+      setErrAddress("");
     }
 
-    if (hasError) {
-      setFormError("Please input all the required fields.");
+    if (
+      hasError &&
+      !addressValidation(checkoutData.shippingAddressFormData.address)
+    ) {
+      setFormError("Please input a correct format address!");
+    } else if (
+      hasError &&
+      !firstNameValidation(checkoutData.shippingAddressFormData.firstName)
+    ) {
+      setFormError("Please input a correct format name!");
+    } else if (
+      hasError &&
+      !lastNameValidation(checkoutData.shippingAddressFormData.lastName)
+    ) {
+      setFormError("Please input a correct format name!");
+    } else if (
+      hasError &&
+      !emailValidation(checkoutData.shippingAddressFormData.email)
+    ) {
+      setFormError("Please input a correct format email!");
+    } else if (
+      hasError &&
+      !phoneValidation(checkoutData.shippingAddressFormData.phone)
+    ) {
+      setFormError("Please input a correct format phone!");
+    } else if (hasError) {
+      setFormError("Please input all the fields required!");
     } else {
       setFormError("");
       window.scrollTo(0, 0);
@@ -483,7 +507,11 @@ const Shipping = () => {
               <h2 className="text-2xl font-bold text-[#333]">
                 Complete your order
               </h2>
-              <form className="mt-10">
+              <form
+                className="mt-10"
+                onSubmit={handleShippingForm}
+                type="submit"
+              >
                 {/* Personal Detail */}
                 <div>
                   <h3 className="text-lg font-bold text-[#333] mb-6">
@@ -497,177 +525,111 @@ const Shipping = () => {
                   <div className="grid sm:grid-cols-2 gap-6">
                     {/* First Name */}
                     <div className="relative flex items-center">
-                      <input
-                        name="first_name"
-                        type="text"
-                        placeholder="First Name *"
-                        className={`px-4 py-3.5 bg-white text-[#333] w-full text-sm border-b-2 focus:border-[#333] outline-none ${
-                          errFirstName ? "border-red-600" : ""
-                        }`}
-                        value={checkoutData.shippingAddressFormData.first_name}
-                        onChange={(e) => {
-                          handleInputChange(e.target.name, e.target.value);
-                          setErrFirstName("");
-                        }}
-                      />
+                      <p className="px-4 py-3.5 bg-white text-gray-500 w-full text-sm border-b-2 focus:border-[#333] outline-none">
+                        {checkoutData.shippingAddressFormData.firstName}
+                      </p>
 
-                      {errFirstName ? (
-                        <p className="text-red-500 text-sm font-semibold mt-1 px-2 flex items-center gap-1">
-                          <span className="text-sm italic font-bold">!</span>
-                          {errFirstName}
-                        </p>
-                      ) : (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="#bbb"
-                          stroke="#bbb"
-                          className="w-[18px] h-[18px] absolute right-4"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            cx="10"
-                            cy="7"
-                            r="6"
-                            data-original="#000000"
-                          ></circle>
-                          <path
-                            d="M14 15H6a5 5 0 0 0-5 5 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 5 5 0 0 0-5-5zm8-4h-2.59l.3-.29a1 1 0 0 0-1.42-1.42l-2 2a1 1 0 0 0 0 1.42l2 2a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42l-.3-.29H22a1 1 0 0 0 0-2z"
-                            data-original="#000000"
-                          ></path>
-                        </svg>
-                      )}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="#bbb"
+                        stroke="#bbb"
+                        className="w-[18px] h-[18px] absolute right-4"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          cx="10"
+                          cy="7"
+                          r="6"
+                          data-original="#000000"
+                        ></circle>
+                        <path
+                          d="M14 15H6a5 5 0 0 0-5 5 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 5 5 0 0 0-5-5zm8-4h-2.59l.3-.29a1 1 0 0 0-1.42-1.42l-2 2a1 1 0 0 0 0 1.42l2 2a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42l-.3-.29H22a1 1 0 0 0 0-2z"
+                          data-original="#000000"
+                        ></path>
+                      </svg>
                     </div>
 
                     {/* Last name */}
                     <div className="relative flex items-center">
-                      <input
-                        name="last_name"
-                        type="text"
-                        placeholder="Last Name *"
-                        className={`px-4 py-3.5 bg-white text-[#333] w-full text-sm border-b-2 focus:border-[#333] outline-none ${
-                          errLastName ? "border-red-600" : ""
-                        }`}
-                        value={checkoutData.shippingAddressFormData.last_name}
-                        onChange={(e) => {
-                          handleInputChange(e.target.name, e.target.value);
-                          setErrLastName("");
-                        }}
-                      />
-                      {errLastName ? (
-                        <p className="text-red-500 text-sm font-titleFont font-semibold mt-1 px-2 flex items-center gap-1">
-                          <span className="text-sm italic font-bold">!</span>
-                          {errLastName}
-                        </p>
-                      ) : (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="#bbb"
-                          stroke="#bbb"
-                          className="w-[18px] h-[18px] absolute right-4"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            cx="10"
-                            cy="7"
-                            r="6"
-                            data-original="#000000"
-                          ></circle>
-                          <path
-                            d="M14 15H6a5 5 0 0 0-5 5 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 5 5 0 0 0-5-5zm8-4h-2.59l.3-.29a1 1 0 0 0-1.42-1.42l-2 2a1 1 0 0 0 0 1.42l2 2a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42l-.3-.29H22a1 1 0 0 0 0-2z"
-                            data-original="#000000"
-                          ></path>
-                        </svg>
-                      )}
+                      <p className="px-4 py-3.5 bg-white text-gray-500 w-full text-sm border-b-2 focus:border-[#333] outline-none">
+                        {checkoutData.shippingAddressFormData.lastName}
+                      </p>
+
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="#bbb"
+                        stroke="#bbb"
+                        className="w-[18px] h-[18px] absolute right-4"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          cx="10"
+                          cy="7"
+                          r="6"
+                          data-original="#000000"
+                        ></circle>
+                        <path
+                          d="M14 15H6a5 5 0 0 0-5 5 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 5 5 0 0 0-5-5zm8-4h-2.59l.3-.29a1 1 0 0 0-1.42-1.42l-2 2a1 1 0 0 0 0 1.42l2 2a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42l-.3-.29H22a1 1 0 0 0 0-2z"
+                          data-original="#000000"
+                        ></path>
+                      </svg>
                     </div>
 
                     {/* Email */}
                     <div className="relative flex items-center">
-                      <input
-                        name="email_field"
-                        type="email"
-                        placeholder="Email *"
-                        className={`px-4 py-3.5 bg-white text-[#333] w-full text-sm border-b-2 focus:border-[#333] outline-none ${
-                          errEmail ? "border-red-600" : ""
-                        } `}
-                        value={checkoutData.shippingAddressFormData.email_field}
-                        onChange={(e) => {
-                          handleInputChange(e.target.name, e.target.value);
-                          setErrEmail("");
-                        }}
-                      />
-                      {errEmail ? (
-                        <p className="text-red-500 text-sm font-titleFont font-semibold mt-1 px-2 flex items-center gap-1">
-                          <span className="text-sm italic font-bold">!</span>
-                          {errEmail}
-                        </p>
-                      ) : (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="#bbb"
-                          stroke="#bbb"
-                          className="w-[18px] h-[18px] absolute right-4"
-                          viewBox="0 0 682.667 682.667"
+                      <p className="px-4 py-3.5 bg-white text-gray-500 w-full text-sm border-b-2 focus:border-[#333] outline-none">
+                        {checkoutData.shippingAddressFormData.email}
+                      </p>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="#bbb"
+                        stroke="#bbb"
+                        className="w-[18px] h-[18px] absolute right-4"
+                        viewBox="0 0 682.667 682.667"
+                      >
+                        <defs>
+                          <clipPath id="a" clipPathUnits="userSpaceOnUse">
+                            <path
+                              d="M0 512h512V0H0Z"
+                              data-original="#000000"
+                            ></path>
+                          </clipPath>
+                        </defs>
+                        <g
+                          clipPath="url(#a)"
+                          transform="matrix(1.33 0 0 -1.33 0 682.667)"
                         >
-                          <defs>
-                            <clipPath id="a" clipPathUnits="userSpaceOnUse">
-                              <path
-                                d="M0 512h512V0H0Z"
-                                data-original="#000000"
-                              ></path>
-                            </clipPath>
-                          </defs>
-                          <g
-                            clipPath="url(#a)"
-                            transform="matrix(1.33 0 0 -1.33 0 682.667)"
-                          >
-                            <path
-                              fill="none"
-                              strokeMiterlimit="10"
-                              strokeWidth="40"
-                              d="M452 444H60c-22.091 0-40-17.909-40-40v-39.446l212.127-157.782c14.17-10.54 33.576-10.54 47.746 0L492 364.554V404c0 22.091-17.909 40-40 40Z"
-                              data-original="#000000"
-                            ></path>
-                            <path
-                              d="M472 274.9V107.999c0-11.027-8.972-20-20-20H60c-11.028 0-20 8.973-20 20V274.9L0 304.652V107.999c0-33.084 26.916-60 60-60h392c33.084 0 60 26.916 60 60v196.653Z"
-                              data-original="#000000"
-                            ></path>
-                          </g>
-                        </svg>
-                      )}
+                          <path
+                            fill="none"
+                            strokeMiterlimit="10"
+                            strokeWidth="40"
+                            d="M452 444H60c-22.091 0-40-17.909-40-40v-39.446l212.127-157.782c14.17-10.54 33.576-10.54 47.746 0L492 364.554V404c0 22.091-17.909 40-40 40Z"
+                            data-original="#000000"
+                          ></path>
+                          <path
+                            d="M472 274.9V107.999c0-11.027-8.972-20-20-20H60c-11.028 0-20 8.973-20 20V274.9L0 304.652V107.999c0-33.084 26.916-60 60-60h392c33.084 0 60 26.916 60 60v196.653Z"
+                            data-original="#000000"
+                          ></path>
+                        </g>
+                      </svg>
                     </div>
 
                     {/* Phone number */}
                     <div className="relative flex items-center">
-                      <input
-                        name="phone"
-                        type="number"
-                        placeholder="Phone No. *"
-                        className={`px-4 py-3.5 bg-white text-[#333] w-full text-sm border-b-2 focus:border-[#333] outline-none  ${
-                          errPhone ? "border-red-600" : ""
-                        }`}
-                        value={checkoutData.shippingAddressFormData.phone}
-                        onChange={(e) => {
-                          handleInputChange(e.target.name, e.target.value);
-                          setErrPhone("");
-                        }}
-                      />
-                      {errPhone ? (
-                        <p className="text-red-500 text-sm font-titleFont font-semibold mt-1 px-2 flex items-center gap-1">
-                          <span className="text-sm italic font-bold">!</span>
-                          {errPhone}
-                        </p>
-                      ) : (
-                        <svg
-                          fill="#bbb"
-                          className="w-[18px] h-[18px] absolute right-4"
-                          viewBox="0 0 64 64"
-                        >
-                          <path
-                            d="m52.148 42.678-6.479-4.527a5 5 0 0 0-6.963 1.238l-1.504 2.156c-2.52-1.69-5.333-4.05-8.014-6.732-2.68-2.68-5.04-5.493-6.73-8.013l2.154-1.504a4.96 4.96 0 0 0 2.064-3.225 4.98 4.98 0 0 0-.826-3.739l-4.525-6.478C20.378 10.5 18.85 9.69 17.24 9.69a4.69 4.69 0 0 0-1.628.291 8.97 8.97 0 0 0-1.685.828l-.895.63a6.782 6.782 0 0 0-.63.563c-1.092 1.09-1.866 2.472-2.303 4.104-1.865 6.99 2.754 17.561 11.495 26.301 7.34 7.34 16.157 11.9 23.011 11.9 1.175 0 2.281-.136 3.29-.406 1.633-.436 3.014-1.21 4.105-2.302.199-.199.388-.407.591-.67l.63-.899a9.007 9.007 0 0 0 .798-1.64c.763-2.06-.007-4.41-1.871-5.713z"
-                            data-original="#000000"
-                          ></path>
-                        </svg>
-                      )}
+                      <p className="px-4 py-3.5 bg-white text-gray-500 w-full text-sm border-b-2 focus:border-[#333] outline-none">
+                        {checkoutData.shippingAddressFormData.phone}
+                      </p>
+
+                      <svg
+                        fill="#bbb"
+                        className="w-[18px] h-[18px] absolute right-4"
+                        viewBox="0 0 64 64"
+                      >
+                        <path
+                          d="m52.148 42.678-6.479-4.527a5 5 0 0 0-6.963 1.238l-1.504 2.156c-2.52-1.69-5.333-4.05-8.014-6.732-2.68-2.68-5.04-5.493-6.73-8.013l2.154-1.504a4.96 4.96 0 0 0 2.064-3.225 4.98 4.98 0 0 0-.826-3.739l-4.525-6.478C20.378 10.5 18.85 9.69 17.24 9.69a4.69 4.69 0 0 0-1.628.291 8.97 8.97 0 0 0-1.685.828l-.895.63a6.782 6.782 0 0 0-.63.563c-1.092 1.09-1.866 2.472-2.303 4.104-1.865 6.99 2.754 17.561 11.495 26.301 7.34 7.34 16.157 11.9 23.011 11.9 1.175 0 2.281-.136 3.29-.406 1.633-.436 3.014-1.21 4.105-2.302.199-.199.388-.407.591-.67l.63-.899a9.007 9.007 0 0 0 .798-1.64c.763-2.06-.007-4.41-1.871-5.713z"
+                          data-original="#000000"
+                        ></path>
+                      </svg>
                     </div>
                   </div>
                 </div>
@@ -683,11 +645,11 @@ const Shipping = () => {
                         provinceError ? "border-red-600" : ""
                       }`}
                       onChange={handleProvinceChange}
-                      value={checkoutData.shippingAddressFormData.city_id}
+                      value={checkoutData.shippingAddressFormData.city}
                     >
                       <option value="">Province / City *</option>
                       {provinces.map((province) => (
-                        <option key={province.Id} value={province.Id}>
+                        <option key={province.Id} value={province.Name}>
                           {province.Name}
                         </option>
                       ))}
@@ -699,12 +661,12 @@ const Shipping = () => {
                         districtError ? "border-red-600" : ""
                       }`}
                       onChange={handleDistrictChange}
-                      value={checkoutData.shippingAddressFormData.district_id}
+                      value={checkoutData.shippingAddressFormData.district}
                       disabled={!selectedProvince}
                     >
                       <option value="">District *</option>
                       {districts.map((district) => (
-                        <option key={district.Id} value={district.Id}>
+                        <option key={district.Id} value={district.Name}>
                           {district.Name}
                         </option>
                       ))}
@@ -717,14 +679,14 @@ const Shipping = () => {
                       disabled={!selectedDistrict || wards.length === 0}
                       value={
                         selectedDistrict && wards.length > 0
-                          ? checkoutData.shippingAddressFormData.ward_id
+                          ? checkoutData.shippingAddressFormData.ward
                           : ""
                       }
                       onChange={handleWardChange}
                     >
                       <option value="">Ward *</option>
                       {wards.map((ward) => (
-                        <option key={ward.Id} value={ward.Id}>
+                        <option key={ward.Id} value={ward.Name}>
                           {ward.Name}
                         </option>
                       ))}
@@ -742,6 +704,7 @@ const Shipping = () => {
                         onChange={(e) => {
                           handleInputChange(e.target.name, e.target.value);
                           setErrAddress("");
+                          setFormError("");
                         }}
                       />
                       {errAddress ? (

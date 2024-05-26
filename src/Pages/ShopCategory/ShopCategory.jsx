@@ -11,6 +11,8 @@ import { useParams, useLocation } from "react-router-dom";
 import FilterComponent from "../../components/Filter/FilterComponent";
 import { GoTriangleDown } from "react-icons/go";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
+import ReactPaginate from "react-paginate";
+import nodatafound from "../../assets/NoDataFound/notdatafound.webp";
 
 const ShopCategory = (props) => {
   const { banner, title, Tag } = props;
@@ -18,9 +20,11 @@ const ShopCategory = (props) => {
   const location = useLocation();
   const [gridViewActive, setGridViewActive] = useState(true);
   const [listViewActive, setListViewActive] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [productsPerPage, setProductsPerPage] = useState(24);
-  const [productsCount, setProductsCount] = useState(0);
+  const [limit, setLimit] = useState(36);
+  const [offset, setOffset] = useState(0);
+  const [pageCount, setPageCount] = useState(0);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false); // Add loading state
 
   const toggleGridView = () => {
     setGridViewActive(true);
@@ -31,6 +35,7 @@ const ShopCategory = (props) => {
     setGridViewActive(false);
     setListViewActive(true);
   };
+
   window.onbeforeunload = function () {
     window.scrollTo(0, 0);
   };
@@ -44,9 +49,8 @@ const ShopCategory = (props) => {
     price: null,
     rating: null,
   };
-  const [filters, setFilters] = useState(initialFilters);
-  const [products, setProducts] = useState([]);
 
+  const [filters, setFilters] = useState(initialFilters);
   const [sort, setSort] = useState({
     field: "product_name",
     order: "ASC",
@@ -77,24 +81,40 @@ const ShopCategory = (props) => {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = async (newOffset) => {
+      setLoading(true); // Set loading to true before fetching data
       try {
         const response = await axios.post(
-          "https://api.yourrlove.com/v1/web/products/filter?limit=36&offset=0",
+          `https://api.yourrlove.com/v1/web/products/filter?limit=${limit}&offset=${newOffset}`,
           {
             filters: filters,
             sort: [sort.field, sort.order],
           }
         );
         setProducts(response.data.metadata);
-        console.log("filter product", response.data);
+        const total = response.data.metadata.length;
+        setPageCount(Math.ceil(total / limit));
       } catch (error) {
         console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false); // Set loading to false after data is fetched
       }
     };
 
-    fetchData();
-  }, [filters, sort]);
+    fetchData(offset);
+  }, [filters, sort, limit, offset]);
+
+  const handlePageClick = (data) => {
+    const selectedPage = data.selected;
+    const newOffset = selectedPage * limit;
+    setOffset(newOffset);
+    window.scrollTo(0, 0);
+  };
+
+  const handleLimitChange = (e) => {
+    setLimit(Number(e.target.value));
+    setOffset(0); // Reset to first page when limit changes
+  };
 
   useEffect(() => {
     // Update localStorage whenever filters or checkedState change
@@ -150,7 +170,6 @@ const ShopCategory = (props) => {
           }
         }
       }
-      console.log("Filters updated:", newFilters);
       return newFilters;
     });
 
@@ -161,7 +180,6 @@ const ShopCategory = (props) => {
       } else {
         newCheckedState[name] = { ...newCheckedState[name], [value]: false };
       }
-      console.log("Checked state updated:", newCheckedState);
       return newCheckedState;
     });
     window.scrollTo(0, 900);
@@ -191,7 +209,6 @@ const ShopCategory = (props) => {
           newFilters[filterType] = null;
         }
       }
-      console.log("Filters updated (remove):", newFilters);
       return newFilters;
     });
     setCheckedState((prevCheckedState) => {
@@ -204,7 +221,6 @@ const ShopCategory = (props) => {
           [value]: false,
         };
       }
-      console.log("Checked state updated (remove):", newCheckedState);
       return newCheckedState;
     });
   };
@@ -246,7 +262,9 @@ const ShopCategory = (props) => {
       />
     ));
   }
+
   const result = filteredData();
+
   return (
     <div className="mx-auto p-2 mb-20">
       {/* Breadcrumb */}
@@ -385,7 +403,10 @@ const ShopCategory = (props) => {
                 <select
                   name="limit"
                   className="w-16 md:w-20 border-[1px] border-gray-200 py-1 px-4 cursor-pointer text-black text-base block dark:placeholder-gray-400 appearance-none focus-within:outline-none focus-visible:border-black"
+                  onChange={handleLimitChange}
+                  value={limit}
                 >
+                  <option value="10">10</option>
                   <option value="24">24</option>
                   <option value="36">36</option>
                 </select>
@@ -396,8 +417,23 @@ const ShopCategory = (props) => {
             </div>
           </div>
           {/* Display products */}
-          <Products result={result} gridViewActive={gridViewActive} />
-          {/* Pagination bottom*/}
+          {loading ? ( // Show loading spinner when data is being fetched
+            <div className="flex justify-center items-center h-64">
+              <div className="loader"></div>
+            </div>
+          ) : products.length === 0 ? (
+            <div className="flex flex-col items-center justify-center">
+              <img
+                src={nodatafound}
+                alt="No data found"
+                className="w-64 h-64"
+              />
+              <p className="text-xl text-gray-600 mt-4">No data found</p>
+            </div>
+          ) : (
+            <Products result={result} gridViewActive={gridViewActive} />
+          )}
+          {/* Pagination bottom */}
           <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-14">
             <div className="flex flex-1 justify-between sm:hidden">
               <a
@@ -416,72 +452,35 @@ const ShopCategory = (props) => {
             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-gray-700">
-                  Showing <span className="font-medium">1</span> to{" "}
-                  <span className="font-medium">10</span> of{" "}
-                  <span className="font-medium">97</span> products
+                  Showing <span className="font-medium">{offset + 1}</span> to{" "}
+                  <span className="font-medium">
+                    {Math.min(offset + limit, products.length)}
+                  </span>{" "}
+                  of <span className="font-medium">{products.length}</span>{" "}
+                  products
                 </p>
               </div>
               <div>
-                <nav
-                  className="isolate inline-flex -space-x-px rounded-md shadow-sm"
-                  aria-label="Pagination"
-                >
-                  <a
-                    href="#"
-                    className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                  >
-                    <span className="sr-only">Previous</span>
-                    <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
-                  </a>
-                  {/* Current: "z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600", Default: "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0" */}
-                  <a
-                    href="#"
-                    aria-current="page"
-                    className="relative z-10 inline-flex items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                  >
-                    1
-                  </a>
-                  <a
-                    href="#"
-                    className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                  >
-                    2
-                  </a>
-                  <a
-                    href="#"
-                    className="relative hidden items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 md:inline-flex"
-                  >
-                    3
-                  </a>
-                  <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">
-                    ...
-                  </span>
-                  <a
-                    href="#"
-                    className="relative hidden items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 md:inline-flex"
-                  >
-                    8
-                  </a>
-                  <a
-                    href="#"
-                    className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                  >
-                    9
-                  </a>
-                  <a
-                    href="#"
-                    className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                  >
-                    10
-                  </a>
-                  <a
-                    href="#"
-                    className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                  >
-                    <span className="sr-only">Next</span>
-                    <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
-                  </a>
-                </nav>
+                <ReactPaginate
+                  nextLabel="next >"
+                  onPageChange={handlePageClick}
+                  pageRangeDisplayed={3}
+                  marginPagesDisplayed={2}
+                  pageCount={pageCount}
+                  previousLabel="< previous"
+                  pageClassName="page-item"
+                  pageLinkClassName="page-link"
+                  previousClassName="page-item"
+                  previousLinkClassName="page-link"
+                  nextClassName="page-item"
+                  nextLinkClassName="page-link"
+                  breakLabel="..."
+                  breakClassName="page-item"
+                  breakLinkClassName="page-link"
+                  containerClassName="pagination"
+                  activeClassName="active"
+                  renderOnZeroPageCount={null}
+                />
               </div>
             </div>
           </div>

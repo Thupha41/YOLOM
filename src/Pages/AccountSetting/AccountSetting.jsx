@@ -6,12 +6,23 @@ import formatNumber from "../../utils/formatCurrency";
 import PopupViewProduct from "../../components/Popup/PopupViewProduct/PopupViewProduct";
 import ToastNotification from "../../components/Popup/ToastNotification/ToastNotification";
 import { ShopContext } from "../../context/ShopContext";
+import nodatafound from "../../assets/NoDataFound/notdatafound.webp";
 const AccountSetting = () => {
   const location = useLocation();
   const username = useUserData();
   const [activeSection, setActiveSection] = useState("accounts");
   const [openPopupOrderId, setOpenPopupOrderId] = useState(null);
   const { orderData } = useContext(ShopContext);
+  const [provinces, setProvinces] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [wards, setWards] = useState([]);
+  const [selectedProvince, setSelectedProvince] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [selectedWard, setSelectedWard] = useState("");
+  const [address, setAddress] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [deliveryId, setDeliveryId] = useState(null);
+
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const section = searchParams.get("activeSection");
@@ -22,15 +33,6 @@ const AccountSetting = () => {
     }
   }, [location]);
 
-  const [provinces, setProvinces] = useState([]);
-  const [districts, setDistricts] = useState([]);
-  const [wards, setWards] = useState([]);
-  const [selectedProvince, setSelectedProvince] = useState("");
-  const [selectedDistrict, setSelectedDistrict] = useState("");
-  const [selectedWard, setSelectedWard] = useState("");
-  const [address, setAddress] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -38,6 +40,33 @@ const AccountSetting = () => {
           "https://raw.githubusercontent.com/kenzouno1/DiaGioiHanhChinhVN/master/data.json"
         );
         setProvinces(response.data);
+
+        const savedDeliveryInfo = JSON.parse(
+          localStorage.getItem("account-delivery-info")
+        );
+
+        if (savedDeliveryInfo) {
+          const { province_city, district, ward, street, delivery_id } =
+            savedDeliveryInfo;
+          setSelectedProvince(province_city);
+          setSelectedDistrict(district);
+          setSelectedWard(ward);
+          setAddress(street);
+          setDeliveryId(delivery_id);
+
+          const foundProvince = response.data.find(
+            (province) => province.Name === province_city
+          );
+          if (foundProvince) {
+            setDistricts(foundProvince.Districts);
+            const foundDistrict = foundProvince.Districts.find(
+              (districtItem) => districtItem.Name === district
+            );
+            if (foundDistrict) {
+              setWards(foundDistrict.Wards);
+            }
+          }
+        }
       } catch (error) {
         console.error("Error fetching data: ", error);
       }
@@ -45,38 +74,14 @@ const AccountSetting = () => {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const savedAddress = JSON.parse(localStorage.getItem("account-address"));
-
-    if (savedAddress) {
-      const { city, district, ward, address } = savedAddress;
-
-      setSelectedProvince(city);
-      setSelectedDistrict(district);
-      setSelectedWard(ward);
-      setAddress(address);
-
-      const foundProvince = provinces.find((province) => province.Id === city);
-      if (foundProvince) {
-        setDistricts(foundProvince.Districts);
-        const foundDistrict = foundProvince.Districts.find(
-          (district) => district.Id === district
-        );
-        if (foundDistrict) {
-          setWards(foundDistrict.Wards);
-        }
-      }
-    }
-  }, [provinces]);
-
   const handleProvinceChange = (e) => {
-    const provinceId = e.target.value;
-    setSelectedProvince(provinceId);
+    const provinceName = e.target.value;
+    setSelectedProvince(provinceName);
     setSelectedDistrict("");
     setSelectedWard("");
 
     const foundProvince = provinces.find(
-      (province) => province.Id === provinceId
+      (province) => province.Name === provinceName
     );
     if (foundProvince) {
       setDistricts(foundProvince.Districts);
@@ -88,12 +93,12 @@ const AccountSetting = () => {
   };
 
   const handleDistrictChange = (e) => {
-    const districtId = e.target.value;
-    setSelectedDistrict(districtId);
+    const districtName = e.target.value;
+    setSelectedDistrict(districtName);
     setSelectedWard("");
 
     const foundDistrict = districts.find(
-      (district) => district.Id === districtId
+      (district) => district.Name === districtName
     );
     if (foundDistrict) {
       setWards(foundDistrict.Wards);
@@ -103,8 +108,8 @@ const AccountSetting = () => {
   };
 
   const handleWardChange = (e) => {
-    const wardId = e.target.value;
-    setSelectedWard(wardId);
+    const wardName = e.target.value;
+    setSelectedWard(wardName);
   };
 
   const handleAddressChange = (e) => {
@@ -118,15 +123,26 @@ const AccountSetting = () => {
 
   const handleSaveClick = async (e) => {
     e.preventDefault();
+
+    if (
+      !selectedProvince ||
+      !selectedDistrict ||
+      !selectedWard ||
+      !address.trim()
+    ) {
+      ToastNotification("Please fill in all the fields", "error");
+      return;
+    }
+
     setIsEditing(false);
 
     const province = provinces.find(
-      (province) => province.Id === selectedProvince
+      (province) => province.Name === selectedProvince
     );
     const district = districts.find(
-      (district) => district.Id === selectedDistrict
+      (district) => district.Name === selectedDistrict
     );
-    const ward = wards.find((ward) => ward.Id === selectedWard);
+    const ward = wards.find((ward) => ward.Name === selectedWard);
 
     const requestBody = {
       province_city: province ? province.Name : "",
@@ -136,20 +152,24 @@ const AccountSetting = () => {
       is_default: true,
     };
 
-    const savedAddress = {
-      city: selectedProvince,
-      district: selectedDistrict,
-      ward: selectedWard,
-      address: address,
-    };
-
-    localStorage.setItem("account-address", JSON.stringify(savedAddress));
-
-    console.log("Request Body:", requestBody);
     const token = localStorage.getItem("auth-token");
     console.log("Authorization Token:", token);
 
     try {
+      // Set current default address to false if it exists
+      if (deliveryId) {
+        await axios.put(
+          `https://api.yourrlove.com/v1/web/deliveryinfors/${deliveryId}`,
+          { is_default: false },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      }
+
+      // Save new address and set as default
       const response = await axios.post(
         "https://api.yourrlove.com/v1/web/deliveryinfors",
         requestBody,
@@ -159,11 +179,22 @@ const AccountSetting = () => {
           },
         }
       );
+
+      const newDeliveryId = response.data.metadata.delivery_id;
+      setDeliveryId(newDeliveryId);
+      const savedDeliveryInfo = {
+        ...requestBody,
+        delivery_id: newDeliveryId,
+      };
+      localStorage.setItem(
+        "account-delivery-info",
+        JSON.stringify(savedDeliveryInfo)
+      );
       ToastNotification("Address has been saved", "success");
       console.log("Address saved:", response.data);
     } catch (error) {
       console.error("Error saving address:", error);
-      ToastNotification("Already have default address", "error");
+      ToastNotification("Error saving address", "error");
       if (error.response) {
         console.error("Response data:", error.response.data);
         console.error("Response status:", error.response.status);
@@ -273,7 +304,7 @@ const AccountSetting = () => {
                   >
                     <option value="">Select Province/City</option>
                     {provinces.map((province) => (
-                      <option key={province.Id} value={province.Id}>
+                      <option key={province.Id} value={province.Name}>
                         {province.Name}
                       </option>
                     ))}
@@ -287,7 +318,7 @@ const AccountSetting = () => {
                   >
                     <option value="">Select District</option>
                     {districts.map((district) => (
-                      <option key={district.Id} value={district.Id}>
+                      <option key={district.Id} value={district.Name}>
                         {district.Name}
                       </option>
                     ))}
@@ -301,7 +332,7 @@ const AccountSetting = () => {
                   >
                     <option value="">Select Ward</option>
                     {wards.map((ward) => (
-                      <option key={ward.Id} value={ward.Id}>
+                      <option key={ward.Id} value={ward.Name}>
                         {ward.Name}
                       </option>
                     ))}
@@ -340,64 +371,76 @@ const AccountSetting = () => {
             <div id="orderHistory">
               <div className="pt-4">
                 <h1 className="py-2 text-2xl font-semibold">Order History</h1>
-                <div className="overflow-x-auto">
-                  <table className="w-full divide-y divide-gray-200">
-                    <thead>
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                          Order ID
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                          Date
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                          Status
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                          Total
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                          Action
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white">
-                      {orderData.map((order) => (
-                        <tr key={order.order_id}>
-                          <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                            #{order.order_id.slice(0, 7)}
-                          </td>
-                          <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                            {order.updatedAt}
-                          </td>
-                          <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                            {order.order_status}
-                          </td>
-                          <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                            {formatNumber(order.order_final_price)} đ
-                          </td>
-                          <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                            <button
-                              className="rounded bg-blue-700 px-4 py-2 text-white"
-                              onClick={() =>
-                                setOpenPopupOrderId(order.order_id)
-                              }
-                            >
-                              View Details
-                            </button>
-                            {openPopupOrderId === order.order_id && (
-                              <PopupViewProduct
-                                orderId={order.order_id}
-                                setIsOpenPopup={setOpenPopupOrderId}
-                              />
-                            )}
-                          </td>
+                {orderData.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center">
+                    <img
+                      src={nodatafound}
+                      alt="No data found"
+                      className="w-64 h-64"
+                    />
+                    <p className="text-xl text-gray-600 font-semibold mt-4">
+                      No order found
+                    </p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full divide-y divide-gray-200">
+                      <thead>
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                            Order ID
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                            Date
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                            Total
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                            Action
+                          </th>
                         </tr>
-                      ))}
-                      {/* Repeat similar <tr> for more orders */}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 bg-white">
+                        {orderData.map((order) => (
+                          <tr key={order.order_id}>
+                            <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                              #{order.order_id.slice(0, 7)}
+                            </td>
+                            <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                              {order.updatedAt}
+                            </td>
+                            <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                              {order.order_status}
+                            </td>
+                            <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                              {formatNumber(order.order_final_price)} đ
+                            </td>
+                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                              <button
+                                className="rounded bg-blue-700 px-4 py-2 text-white"
+                                onClick={() =>
+                                  setOpenPopupOrderId(order.order_id)
+                                }
+                              >
+                                View Details
+                              </button>
+                              {openPopupOrderId === order.order_id && (
+                                <PopupViewProduct
+                                  orderId={order.order_id}
+                                  setIsOpenPopup={setOpenPopupOrderId}
+                                />
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
           )}

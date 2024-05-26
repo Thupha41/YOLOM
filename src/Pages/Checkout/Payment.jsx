@@ -82,9 +82,9 @@ const Payment = () => {
           discount_code: localDiscountCode || null,
           delivery_information: {
             personal_detail: {
-              first_name: checkoutData.shippingAddressFormData.first_name || "",
-              last_name: checkoutData.shippingAddressFormData.last_name || "",
-              email: checkoutData.shippingAddressFormData.email_field || "",
+              first_name: checkoutData.shippingAddressFormData.firstName || "",
+              last_name: checkoutData.shippingAddressFormData.lastName || "",
+              email: checkoutData.shippingAddressFormData.email || "",
               phone_number: checkoutData.shippingAddressFormData.phone || "",
             },
             shipping_address: {

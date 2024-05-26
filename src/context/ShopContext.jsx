@@ -8,6 +8,7 @@ import React, {
 import axios from "axios";
 import PropTypes from "prop-types";
 import ToastNotification from "../components/Popup/ToastNotification/ToastNotification";
+import useCartIdData from "../hooks/useCartIdData";
 export const ShopContext = createContext(null);
 
 const getInitialCart = () => {
@@ -30,7 +31,9 @@ const getInitialFinalTotalAmount = () => {
 const ShopContextProvider = ({ children }) => {
   const [all_product, setAll_Product] = useState([]);
   const [cartItems, setCartItems] = useState(getInitialCart());
-  const [cartId, setCartId] = useState(localStorage.getItem("cartId") || null);
+  const cartId = useCartIdData();
+  console.log("cart_id", cartId);
+  // const [cartId, setCartId] = useState(localStorage.getItem("cartId") || null);
   const [totalCartAmount, setTotalCartAmount] = useState(0);
   const [discountCode, setDiscountCode] = useState(getInitialDiscountCode());
   const [discountAmount, setDiscountAmount] = useState(
@@ -89,15 +92,15 @@ const ShopContextProvider = ({ children }) => {
 
   const addToCart = useCallback(
     async (itemId, quantity) => {
-      const product = all_product.find((p) => p.product_id === itemId);
+      const product = all_product.find((p) => p.sku_id === itemId);
       if (!product) return;
 
       try {
         const response = await axios.post(
           "https://api.yourrlove.com/v1/web/cart/add_to_cart",
           {
-            sku_id: product.sku_id,
-            product_id: itemId,
+            sku_id: itemId,
+            product_id: product.product_id,
             quantity,
           },
           {
@@ -109,7 +112,6 @@ const ShopContextProvider = ({ children }) => {
 
         console.log(response.data);
         if (!cartId) {
-          setCartId(response.data.metadata.cart_id);
           localStorage.setItem("cartId", response.data.metadata.cart_id);
         }
 
@@ -184,9 +186,9 @@ const ShopContextProvider = ({ children }) => {
             delivery_information: {
               personal_detail: {
                 first_name:
-                  checkoutData.shippingAddressFormData.first_name || "",
-                last_name: checkoutData.shippingAddressFormData.last_name || "",
-                email: checkoutData.shippingAddressFormData.email_field || "",
+                  checkoutData.shippingAddressFormData.firstName || "",
+                last_name: checkoutData.shippingAddressFormData.lastName || "",
+                email: checkoutData.shippingAddressFormData.email || "",
                 phone_number: checkoutData.shippingAddressFormData.phone || "",
               },
               shipping_address: {
@@ -207,6 +209,7 @@ const ShopContextProvider = ({ children }) => {
 
         const data = response.data.metadata;
         setTotalCartAmount(data.total_price);
+        console.log(data.total_price);
         setDiscountAmount(data.discount_amount || 0);
         setFinalTotalAmount(data.final_price || data.total_price);
         setShippingPrice(data.shipping_price || 0);
@@ -241,15 +244,19 @@ const ShopContextProvider = ({ children }) => {
   }, [cartId, discountCode, fetchTotalCartAmount]);
 
   useEffect(() => {
-    localStorage.setItem("discountCode", discountCode);
-    localStorage.setItem("discountAmount", discountAmount);
-    localStorage.setItem("finalTotalAmount", finalTotalAmount);
-    localStorage.setItem("orderProvince", orderProvince);
-    localStorage.setItem("orderWard", orderWard);
-    localStorage.setItem("orderStreet", orderStreet);
-    localStorage.setItem("orderDistrict", orderDistrict);
-    localStorage.setItem("orderPhone", orderPhone);
-    localStorage.setItem("orderName", orderName);
+    const orderData = {
+      discountCode,
+      discountAmount,
+      finalTotalAmount,
+      orderProvince,
+      orderWard,
+      orderStreet,
+      orderDistrict,
+      orderPhone,
+      orderName,
+    };
+
+    localStorage.setItem("order-data", JSON.stringify(orderData));
   }, [
     discountCode,
     discountAmount,

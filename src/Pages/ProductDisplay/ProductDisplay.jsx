@@ -52,7 +52,7 @@ const ProductDisplay = (props) => {
       ToastNotification("Login before continuing", "warn");
     } else {
       ToastNotification("Add to cart successfully", "success");
-      addToCart(product.product_id, quantity);
+      addToCart(product.sku_id, quantity);
     }
   };
 
@@ -231,6 +231,7 @@ ProductDisplay.propTypes = {
     Brand: PropTypes.string.isRequired,
     sku_no: PropTypes.string,
     sku_size: PropTypes.string,
+    sku_id: PropTypes.string,
   }).isRequired,
 };
 

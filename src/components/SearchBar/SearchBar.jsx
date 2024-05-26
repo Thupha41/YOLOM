@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IoMdSearch } from "react-icons/io";
 import axios from "axios";
 import { SearchResultsList } from "../SearchResultList/SearchResultsList";
@@ -6,27 +6,32 @@ import { SearchResultsList } from "../SearchResultList/SearchResultsList";
 const SearchBar = () => {
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      if (searchValue.trim() === "") {
+        setSearchResults([]); // Thiết lập searchResults thành một mảng rỗng
+        return;
+      }
+      try {
+        setLoading(true);
+        const response = await axios.post(
+          "https://api.yourrlove.com/v1/web/products/search",
+          { query: searchValue }
+        );
+        setSearchResults(response.data.metadata);
+      } catch (error) {
+        console.error("Error fetching search results:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSearchResults();
+  }, [searchValue]);
 
   const handleSearchInputChange = (event) => {
     setSearchValue(event.target.value);
-  };
-
-  const handleSearchIconClick = async () => {
-    if (searchValue.trim() === "") {
-      // If the search query is empty, set search results to an empty array
-      setSearchResults([]);
-      return;
-    }
-
-    try {
-      const response = await axios.post(
-        "https://api.yourrlove.com/v1/web/products/search",
-        { query: searchValue }
-      );
-      setSearchResults(response.data.metadata);
-    } catch (error) {
-      console.error("Error fetching search results:", error);
-    }
   };
 
   // Render the SearchBar and SearchResultsList components
@@ -40,12 +45,17 @@ const SearchBar = () => {
           onChange={handleSearchInputChange}
           value={searchValue}
         />
-        <IoMdSearch
-          className="text-gray-500 group-hover:text-primary absolute top-1/2 -translate-y-1/2 right-3 cursor-pointer"
-          onClick={handleSearchIconClick}
-        />
+        {loading ? (
+          <div className="absolute top-1/2 -translate-y-1/2 right-3">
+            <div className="w-5 h-5 border-2 border-t-2 border-gray-400 rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <IoMdSearch className="text-gray-500 group-hover:text-primary absolute top-1/2 -translate-y-1/2 right-3 cursor-pointer" />
+        )}
       </div>
-      <SearchResultsList results={searchResults} />
+      {searchValue.trim() !== "" && (
+        <SearchResultsList results={searchResults} />
+      )}
     </>
   );
 };
