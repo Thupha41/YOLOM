@@ -13,8 +13,8 @@
 }
 
 .loader {
-    border: 16px solid #f3f3f3; /* Light grey */
-    border-top: 16px solid #3498db; /* Blue */
+    border: 16px solid #f3f3f3; 
+    border-top: 16px solid #3498db; 
     border-radius: 50%;
     width: 120px;
     height: 120px;
@@ -28,4 +28,40 @@
     100% {
       transform: rotate(360deg);
     }
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding: 0;
+  }
+  
+  .page-item {
+    margin: 0 2px;
+  }
+  
+  .page-link {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    color: #000000;
+    cursor: pointer;
+    text-decoration: none;
+    border-radius: 3px;
+  }
+  
+  .page-item.disabled .page-link {
+    color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .page-item.active .page-link {
+    background-color: #000000;
+    color: #fff;
+    border: 1px solid #000000;
+  }
+  
+  .page-link:hover {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
   }

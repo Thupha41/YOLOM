@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import Shipping from "./Shipping";
 import Payment from "./Payment";
 import SuccessOrder from "./SuccessOrder"; // Import the new component
+import FailedOrder from "./FailedOrder";
+
 const HashCheckout = () => {
   const [currentHash, setCurrentHash] = useState(window.location.hash);
 
@@ -18,7 +20,9 @@ const HashCheckout = () => {
   }, []);
 
   useEffect(() => {
-    if (!["#shipping", "#payment", "#success"].includes(currentHash)) {
+    if (
+      !["#shipping", "#payment", "#success", "#failure"].includes(currentHash)
+    ) {
       window.location.replace(`${window.location.pathname}#shipping`);
     }
   }, [currentHash]);
@@ -28,6 +32,7 @@ const HashCheckout = () => {
       {currentHash === "#shipping" && <Shipping />}
       {currentHash === "#payment" && <Payment />}
       {currentHash === "#success" && <SuccessOrder />}
+      {currentHash === "#failure" && <FailedOrder />}
     </>
   );
 };

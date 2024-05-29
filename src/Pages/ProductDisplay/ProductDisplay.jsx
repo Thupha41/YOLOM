@@ -10,11 +10,12 @@ import ToastNotification from "../../components/Popup/ToastNotification/ToastNot
 
 const ProductDisplay = (props) => {
   const { product } = props;
-  const { addToCart, cartItems, all_product } = useContext(ShopContext);
+  const { addToCart, cartItems } = useContext(ShopContext);
   const thumbnails = product.sku_image.map((url) => url.trim());
   const [mainImage, setMainImage] = useState(thumbnails[0]);
   const [quantity, setQuantity] = useState(1);
-
+  const [email, setEmail] = useState("");
+  const [notify, setNotify] = useState(false);
   useEffect(() => {
     addRecentlyViewedProduct(product); // Add the product to the recently viewed list
     if (!thumbnails.includes(mainImage)) {
@@ -38,10 +39,9 @@ const ProductDisplay = (props) => {
   };
 
   const productInCart = cartItems[product.id] || 0;
-  const currentProduct = all_product.find((p) => p.product_id === product.id);
-  const isOutOfStock =
-    currentProduct && productInCart >= currentProduct.Product.product_quantity;
-
+  const currentProduct = product.sku_id;
+  const isOutOfStock = currentProduct && productInCart >= product.sku_quantity;
+  console.log(product.sku_quantity);
   const handleQuantityChange = (e) => {
     setQuantity(e.target.value);
   };
@@ -54,6 +54,15 @@ const ProductDisplay = (props) => {
       ToastNotification("Add to cart successfully", "success");
       addToCart(product.sku_id, quantity);
     }
+  };
+
+  const handleNotifySubmit = (e) => {
+    e.preventDefault();
+    // Logic to handle out-of-stock notifications
+    ToastNotification(
+      "You will be notified when the product is back in stock",
+      "success"
+    );
   };
 
   return (
@@ -197,11 +206,34 @@ const ProductDisplay = (props) => {
         </div>
 
         {/* ADD TO CART button */}
-        <div className="flex justify-center mr-[75px] mt-2">
+        <div className="flex flex-col justify-center mr-[75px] mt-2">
           {isOutOfStock ? (
-            <button className="w-full sm:w-[300px] text-[16px] h-14 font-semibold text-gray-500 bg-gray-300 cursor-not-allowed">
-              OUT OF STOCK
-            </button>
+            <>
+              <button className="w-full sm:w-[300px] text-[18px] h-14 font-semibold text-gray-600 bg-gray-300 cursor-not-allowed">
+                OUT OF STOCK
+              </button>
+              <form className="mt-8" onSubmit={handleNotifySubmit}>
+                <p className="text-sm text-gray-600">
+                  Notify me when available
+                </p>
+                <div className="flex mt-2">
+                  <input
+                    type="email"
+                    className="p-2 border border-gray-300 rounded-md flex-grow"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="submit"
+                    className="ml-2 bg-blue-500 text-white px-4 py-2 rounded-md"
+                  >
+                    Notify Me
+                  </button>
+                </div>
+              </form>
+            </>
           ) : (
             <button
               onClick={handleAddToCart}
@@ -211,8 +243,6 @@ const ProductDisplay = (props) => {
             </button>
           )}
         </div>
-
-        {/* <p className="mt-4 text-gray-500">Category</p> */}
       </div>
     </div>
   );
@@ -232,6 +262,7 @@ ProductDisplay.propTypes = {
     sku_no: PropTypes.string,
     sku_size: PropTypes.string,
     sku_id: PropTypes.string,
+    sku_quantity: PropTypes.number,
   }).isRequired,
 };
 

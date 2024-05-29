@@ -7,12 +7,14 @@ import PopupViewProduct from "../../components/Popup/PopupViewProduct/PopupViewP
 import ToastNotification from "../../components/Popup/ToastNotification/ToastNotification";
 import { ShopContext } from "../../context/ShopContext";
 import nodatafound from "../../assets/NoDataFound/notdatafound.webp";
+import PopupNotification from "../../components/Popup/PopupNotification/PopupNotification";
 const AccountSetting = () => {
   const location = useLocation();
   const username = useUserData();
   const [activeSection, setActiveSection] = useState("accounts");
+  const [orderToCancel, setOrderToCancel] = useState(null);
   const [openPopupOrderId, setOpenPopupOrderId] = useState(null);
-  const { orderData } = useContext(ShopContext);
+  const { orderData, setOrderData } = useContext(ShopContext);
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
@@ -73,6 +75,40 @@ const AccountSetting = () => {
     };
     fetchData();
   }, []);
+  const updateOrderStatusLocally = (orderId, newStatus) => {
+    const updatedOrders = orderData.map((order) =>
+      order.order_id === orderId ? { ...order, order_status: newStatus } : order
+    );
+    setOrderData(updatedOrders);
+  };
+
+  // HANDLE CANCEL BUTTON --- UPDATE ORDER
+  const handleCancelOrder = async (orderId) => {
+    try {
+      const responseUpdateOrder = await axios.put(
+        `https://api.yourrlove.com/v1/web/orders/${orderId}`,
+        {
+          status: "Cancelled",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth-token")}`,
+          },
+        }
+      );
+
+      if (responseUpdateOrder.status === 200) {
+        updateOrderStatusLocally(orderId, "Cancelled");
+        ToastNotification(
+          `Cancel Order #${orderId.slice(0, 7)} Successfully`,
+          "success"
+        );
+      }
+    } catch (error) {
+      console.error("Error updating status", error);
+      ToastNotification("Error cancelling order", "error");
+    }
+  };
 
   const handleProvinceChange = (e) => {
     const provinceName = e.target.value;
@@ -205,6 +241,10 @@ const AccountSetting = () => {
         console.error("Error message:", error.message);
       }
     }
+  };
+  const formatDate = (dateString) => {
+    const [year, month, day] = dateString.split("-");
+    return `${day}-${month}-${year}`;
   };
 
   return (
@@ -369,7 +409,7 @@ const AccountSetting = () => {
 
           {activeSection === "orderHistory" && (
             <div id="orderHistory">
-              <div className="pt-4">
+              <div className="pt-4 overflow-auto">
                 <h1 className="py-2 text-2xl font-semibold">Order History</h1>
                 {orderData.length === 0 ? (
                   <div className="flex flex-col items-center justify-center">
@@ -383,23 +423,26 @@ const AccountSetting = () => {
                     </p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
                     <table className="w-full divide-y divide-gray-200">
                       <thead>
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                             Order ID
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                          <th className="px-10 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                             Date
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                            Payment Status
+                          </th>
+                          <th className="px-8 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                             Status
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                             Total
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                          <th className="px-20 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                             Action
                           </th>
                         </tr>
@@ -411,17 +454,52 @@ const AccountSetting = () => {
                               #{order.order_id.slice(0, 7)}
                             </td>
                             <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                              {order.updatedAt}
+                              {formatDate(order.updatedAt)}
+                            </td>
+                            <td className="whitespace-nowrap px-12 py-4 text-sm font-medium text-gray-900">
+                              <span
+                                className={`text-xs font-medium me-2 px-2.5 py-0.5 rounded ${
+                                  order.order_payment_status === "Unpaid"
+                                    ? "bg-gray-300 text-gray-800"
+                                    : order.order_status === "Cancelled"
+                                    ? "bg-red-300 text-gray-800"
+                                    : order.order_status === "Paid"
+                                    ? "bg-green-300 text-gray-800"
+                                    : ""
+                                } dark:bg-gray-700 dark:text-gray-300`}
+                              >
+                                {order.order_payment_status}
+                              </span>
                             </td>
                             <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                              {order.order_status}
+                              <span
+                                className={`text-xs font-medium me-2 px-2.5 py-0.5 rounded ${
+                                  order.order_status === "Pending"
+                                    ? "bg-gray-300 text-gray-800"
+                                    : order.order_status === "Cancelled"
+                                    ? "bg-red-300 text-gray-800"
+                                    : order.order_status === "Confirmed"
+                                    ? "bg-green-300 text-gray-800"
+                                    : order.order_status === "Shipping"
+                                    ? "bg-blue-300 text-gray-800"
+                                    : order.order_status === "Delivered"
+                                    ? "bg-yellow-300 text-gray-800"
+                                    : ""
+                                } dark:bg-gray-700 dark:text-gray-300`}
+                              >
+                                {order.order_status}
+                              </span>
                             </td>
                             <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                              {formatNumber(order.order_final_price)} đ
+                              {formatNumber(order.order_final_price)}đ
                             </td>
                             <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                               <button
-                                className="rounded bg-blue-700 px-4 py-2 text-white"
+                                className={`rounded bg-blue-700 py-2 text-white px-4 ${
+                                  order.order_status !== "Pending"
+                                    ? "ml-6"
+                                    : "ml-6"
+                                }`}
                                 onClick={() =>
                                   setOpenPopupOrderId(order.order_id)
                                 }
@@ -433,6 +511,25 @@ const AccountSetting = () => {
                                   orderId={order.order_id}
                                   setIsOpenPopup={setOpenPopupOrderId}
                                 />
+                              )}
+                              {order.order_status === "Pending" && (
+                                <>
+                                  <PopupNotification
+                                    triggerText="Cancel"
+                                    open={orderToCancel === order.order_id}
+                                    onClose={() => setOrderToCancel(null)}
+                                    modalTitle="Cancel Notification"
+                                    confirmText="Confirm"
+                                    cancelText="Cancel"
+                                    confirmAction={() =>
+                                      handleCancelOrder(order.order_id)
+                                    }
+                                    content="Are you sure you want to cancel this order?"
+                                    triggerClassName="rounded bg-red-500 px-4 py-2 ml-4 text-white"
+                                    confirmClassName="rounded bg-blue-700 px-4 py-2 ml-4 text-white"
+                                    cancelClassName="rounded bg-gray-300 px-4 py-2 ml-4 text-gray-800"
+                                  />
+                                </>
                               )}
                             </td>
                           </tr>

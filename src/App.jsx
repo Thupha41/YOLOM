@@ -19,6 +19,7 @@ import HashCheckout from "./Pages/Checkout/HashCheckout";
 import AccountSetting from "./Pages/AccountSetting/AccountSetting";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
+import NotFoundPage from "./Pages/404NotFound/404NotFound";
 
 const Layout = () => {
   return (
@@ -143,15 +144,16 @@ const router = createBrowserRouter([
       },
     ],
   },
-  // {
-  //   path: "/checkout/shipping",
-  //   element: <Shipping/>
-  // },
 
   {
     path: "/checkout",
     element: <HashCheckout />,
   },
+  {
+    path: "/blog",
+    element: <NotFoundPage />,
+  },
+  { path: "*", element: <NotFoundPage /> },
 ]);
 
 const App = () => {

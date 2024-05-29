@@ -10,10 +10,8 @@ import "./ShopCategory.css";
 import { useParams, useLocation } from "react-router-dom";
 import FilterComponent from "../../components/Filter/FilterComponent";
 import { GoTriangleDown } from "react-icons/go";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import ReactPaginate from "react-paginate";
 import nodatafound from "../../assets/NoDataFound/notdatafound.webp";
-
 const ShopCategory = (props) => {
   const { banner, title, Tag } = props;
   const { Brand } = useParams();
@@ -25,7 +23,7 @@ const ShopCategory = (props) => {
   const [pageCount, setPageCount] = useState(0);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false); // Add loading state
-
+  const [totalProduct, setTotalProduct] = useState(0);
   const toggleGridView = () => {
     setGridViewActive(true);
     setListViewActive(false);
@@ -91,24 +89,26 @@ const ShopCategory = (props) => {
             sort: [sort.field, sort.order],
           }
         );
-        setProducts(response.data.metadata);
-        const total = response.data.metadata.length;
-        setPageCount(Math.ceil(total / limit));
+        setProducts(response.data.metadata.products);
+        setTotalProduct(response.data.metadata.Total);
+        setPageCount(Math.ceil(totalProduct / limit));
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
-        setLoading(false); // Set loading to false after data is fetched
+        setLoading(false);
       }
     };
 
     fetchData(offset);
-  }, [filters, sort, limit, offset]);
+  }, [filters, sort, limit, offset, totalProduct]);
 
   const handlePageClick = (data) => {
     const selectedPage = data.selected;
-    const newOffset = selectedPage * limit;
+    console.log("selectedPage", selectedPage);
+    const newOffset = selectedPage;
     setOffset(newOffset);
-    window.scrollTo(0, 0);
+    console.log("offset", newOffset);
+    window.scrollTo(0, 900);
   };
 
   const handleLimitChange = (e) => {
@@ -296,67 +296,26 @@ const ShopCategory = (props) => {
         <div className="w-full md:w-[73%] px-4 mr-4">
           <div className="w-full flex flex-col md:flex-row md:items-center justify-between mb-4">
             {/* Pagination top */}
-            <div>
-              <nav
-                className="isolate inline-flex -space-x-px rounded-md shadow-sm"
-                aria-label="Pagination"
-              >
-                <a
-                  href="#"
-                  className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                >
-                  <span className="sr-only">Previous</span>
-                  <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
-                </a>
-                <a
-                  href="#"
-                  aria-current="page"
-                  className="relative z-10 inline-flex items-center bg-black px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                >
-                  1
-                </a>
-                <a
-                  href="#"
-                  className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                >
-                  2
-                </a>
-                <a
-                  href="#"
-                  className="relative hidden items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 md:inline-flex"
-                >
-                  3
-                </a>
-                <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">
-                  ...
-                </span>
-                <a
-                  href="#"
-                  className="relative hidden items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 md:inline-flex"
-                >
-                  8
-                </a>
-                <a
-                  href="#"
-                  className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                >
-                  9
-                </a>
-                <a
-                  href="#"
-                  className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                >
-                  10
-                </a>
-                <a
-                  href="#"
-                  className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                >
-                  <span className="sr-only">Next</span>
-                  <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
-                </a>
-              </nav>
-            </div>
+            <ReactPaginate
+              nextLabel="next >"
+              onPageChange={handlePageClick}
+              pageRangeDisplayed={3}
+              marginPagesDisplayed={2}
+              pageCount={pageCount}
+              previousLabel="< prev"
+              pageClassName="page-item"
+              pageLinkClassName="page-link"
+              previousClassName="page-item"
+              previousLinkClassName="page-link"
+              nextClassName="page-item"
+              nextLinkClassName="page-link"
+              breakLabel="..."
+              breakClassName="page-item"
+              breakLinkClassName="page-link"
+              containerClassName="pagination"
+              activeClassName="active"
+              renderOnZeroPageCount={null}
+            />
             {/* GRID VIEW */}
             <div className="flex items-center gap-4">
               <span
@@ -454,9 +413,9 @@ const ShopCategory = (props) => {
                 <p className="text-sm text-gray-700">
                   Showing <span className="font-medium">{offset + 1}</span> to{" "}
                   <span className="font-medium">
-                    {Math.min(offset + limit, products.length)}
+                    {Math.min(offset + limit, totalProduct)}
                   </span>{" "}
-                  of <span className="font-medium">{products.length}</span>{" "}
+                  of <span className="font-medium">{totalProduct}</span>{" "}
                   products
                 </p>
               </div>

@@ -15,7 +15,6 @@ import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import QuantityUpdate from "../QuantityUpdate/QuantityUpdate";
 import { FaRegTrashCan } from "react-icons/fa6";
-import { SearchResultsList } from "../SearchResultList/SearchResultsList";
 
 const Menu = [
   {

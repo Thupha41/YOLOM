@@ -31,8 +31,10 @@ const getInitialFinalTotalAmount = () => {
 const ShopContextProvider = ({ children }) => {
   const [all_product, setAll_Product] = useState([]);
   const [cartItems, setCartItems] = useState(getInitialCart());
+  // CartId get from userCartIdData
   const cartId = useCartIdData();
-  console.log("cart_id", cartId);
+  // Loading
+  const [loading, setLoading] = useState(false);
   // const [cartId, setCartId] = useState(localStorage.getItem("cartId") || null);
   const [totalCartAmount, setTotalCartAmount] = useState(0);
   const [discountCode, setDiscountCode] = useState(getInitialDiscountCode());
@@ -172,6 +174,7 @@ const ShopContextProvider = ({ children }) => {
   const fetchTotalCartAmount = useCallback(
     async (discountCode = "") => {
       try {
+        setLoading(true);
         const checkoutData = JSON.parse(localStorage.getItem("checkout-data"));
         const response = await axios.post(
           `https://api.yourrlove.com/v1/web/orders/checkout`,
@@ -232,6 +235,8 @@ const ShopContextProvider = ({ children }) => {
       } catch (error) {
         console.error("Failed to fetch total cart amount", error);
         throw error;
+      } finally {
+        setLoading(false); // Stop loading
       }
     },
     [cartItems, cartId, selectedPaymentMethod]
@@ -332,6 +337,8 @@ const ShopContextProvider = ({ children }) => {
       cartId,
       fetchProductDetails,
       orderData,
+      loading,
+      setOrderData,
     }),
     [
       getTotalCartItems,
@@ -357,6 +364,8 @@ const ShopContextProvider = ({ children }) => {
       cartId,
       fetchProductDetails,
       orderData,
+      loading,
+      setOrderData,
     ]
   );
 
