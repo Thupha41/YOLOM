@@ -508,7 +508,7 @@ const Payment = () => {
                       {" "}
                       ({totalItems} items)
                     </h3>
-                    <div className="space-y-6 mt-10 mb-32 items-center justify-center flex">
+                    <div className="space-y-6 mt-10 mb-32 items-center justify-center">
                       {loading ? (
                         <svg
                           aria-hidden="true"

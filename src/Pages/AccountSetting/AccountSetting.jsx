@@ -8,6 +8,8 @@ import ToastNotification from "../../components/Popup/ToastNotification/ToastNot
 import { ShopContext } from "../../context/ShopContext";
 import nodatafound from "../../assets/NoDataFound/notdatafound.webp";
 import PopupNotification from "../../components/Popup/PopupNotification/PopupNotification";
+import useUserId from "../../hooks/useUserId";
+
 const AccountSetting = () => {
   const location = useLocation();
   const username = useUserData();
@@ -24,6 +26,7 @@ const AccountSetting = () => {
   const [address, setAddress] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [deliveryId, setDeliveryId] = useState(null);
+  const userId = useUserId();
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -35,46 +38,73 @@ const AccountSetting = () => {
     }
   }, [location]);
 
+  // Fetch user ID and delivery info on component mount
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchUserData = async () => {
       try {
-        const response = await axios.get(
-          "https://raw.githubusercontent.com/kenzouno1/DiaGioiHanhChinhVN/master/data.json"
+        const deliveryResponse = await axios.get(
+          "https://api.yourrlove.com/v1/web/deliveryinfors",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("auth-token")}`,
+            },
+          }
         );
-        setProvinces(response.data);
 
-        const savedDeliveryInfo = JSON.parse(
-          localStorage.getItem("account-delivery-info")
+        const deliveryInfo = deliveryResponse.data.metadata.find(
+          (info) => info.is_default
         );
 
-        if (savedDeliveryInfo) {
+        if (deliveryInfo) {
           const { province_city, district, ward, street, delivery_id } =
-            savedDeliveryInfo;
+            deliveryInfo;
           setSelectedProvince(province_city);
           setSelectedDistrict(district);
           setSelectedWard(ward);
           setAddress(street);
           setDeliveryId(delivery_id);
-
-          const foundProvince = response.data.find(
-            (province) => province.Name === province_city
+          localStorage.setItem(
+            `account-delivery-info-${userId}`,
+            JSON.stringify(deliveryInfo)
           );
-          if (foundProvince) {
-            setDistricts(foundProvince.Districts);
-            const foundDistrict = foundProvince.Districts.find(
-              (districtItem) => districtItem.Name === district
-            );
-            if (foundDistrict) {
-              setWards(foundDistrict.Wards);
-            }
-          }
         }
       } catch (error) {
-        console.error("Error fetching data: ", error);
+        console.error("Error fetching user data or delivery info: ", error);
       }
     };
-    fetchData();
-  }, []);
+
+    const fetchProvinces = async () => {
+      try {
+        const response = await axios.get(
+          "https://raw.githubusercontent.com/kenzouno1/DiaGioiHanhChinhVN/master/data.json"
+        );
+        setProvinces(response.data);
+      } catch (error) {
+        console.error("Error fetching provinces: ", error);
+      }
+    };
+
+    fetchUserData();
+    fetchProvinces();
+  }, [userId]);
+
+  useEffect(() => {
+    if (selectedProvince) {
+      const foundProvince = provinces.find(
+        (province) => province.Name === selectedProvince
+      );
+      if (foundProvince) {
+        setDistricts(foundProvince.Districts);
+        const foundDistrict = foundProvince.Districts.find(
+          (district) => district.Name === selectedDistrict
+        );
+        if (foundDistrict) {
+          setWards(foundDistrict.Wards);
+        }
+      }
+    }
+  }, [selectedProvince, provinces, selectedDistrict]);
+
   const updateOrderStatusLocally = (orderId, newStatus) => {
     const updatedOrders = orderData.map((order) =>
       order.order_id === orderId ? { ...order, order_status: newStatus } : order
@@ -223,7 +253,7 @@ const AccountSetting = () => {
         delivery_id: newDeliveryId,
       };
       localStorage.setItem(
-        "account-delivery-info",
+        `account-delivery-info-${userId}`,
         JSON.stringify(savedDeliveryInfo)
       );
       ToastNotification("Address has been saved", "success");
@@ -242,6 +272,7 @@ const AccountSetting = () => {
       }
     }
   };
+
   const formatDate = (dateString) => {
     const [year, month, day] = dateString.split("-");
     return `${day}-${month}-${year}`;

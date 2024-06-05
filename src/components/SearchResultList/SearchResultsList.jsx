@@ -2,17 +2,18 @@ import PropTypes from "prop-types";
 import "./SearchResultsList.css";
 import formatNumber from "../../utils/formatCurrency";
 import { Link } from "react-router-dom";
+
 export const SearchResultsList = ({ results }) => {
   return (
     <div className="results-list">
       {results.map((result) => (
         <div
           key={result.sku_id}
-          className="mt-4 md:mt-6 flex  flex-col md:flex-row justify-start items-start md:items-center md:space-x-6 xl:space-x-8 w-full "
+          className="mt-4 md:mt-6 flex flex-col md:flex-row justify-start items-start md:items-center md:space-x-6 xl:space-x-8 w-full"
         >
           <div className="pb-4 md:pb-8 w-full md:w-40 ml-4">
             <Link
-              to={`{product/${result.sku_slug}}`}
+              to={`/product/${result.sku_slug}`}
               onClick={() => {
                 window.scrollTo(0, 0);
               }}
@@ -33,7 +34,7 @@ export const SearchResultsList = ({ results }) => {
             <div className="w-full flex flex-col justify-start items-start space-y-8">
               <h3 className="text-xl xl:text-2xl font-semibold leading-6 text-gray-800">
                 <Link
-                  to={`{product/${result.sku_slug}}`}
+                  to={`/product/${result.sku_slug}`}
                   onClick={() => {
                     window.scrollTo(0, 0);
                   }}
@@ -74,7 +75,19 @@ export const SearchResultsList = ({ results }) => {
 SearchResultsList.propTypes = {
   results: PropTypes.arrayOf(
     PropTypes.shape({
-      name: PropTypes.string.isRequired,
+      sku_id: PropTypes.string.isRequired,
+      sku_slug: PropTypes.string.isRequired,
+      sku_image: PropTypes.array.isRequired,
+      sku_color: PropTypes.string.isRequired,
+      sku_size: PropTypes.string.isRequired,
+      sku_quantity: PropTypes.number.isRequired,
+      Product: PropTypes.shape({
+        product_name: PropTypes.string.isRequired,
+        product_price: PropTypes.number.isRequired,
+        Brand: PropTypes.shape({
+          name: PropTypes.string.isRequired,
+        }).isRequired,
+      }).isRequired,
     }).isRequired
   ).isRequired,
 };

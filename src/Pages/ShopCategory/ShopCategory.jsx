@@ -295,27 +295,6 @@ const ShopCategory = (props) => {
         </div>
         <div className="w-full md:w-[73%] px-4 mr-4">
           <div className="w-full flex flex-col md:flex-row md:items-center justify-between mb-4">
-            {/* Pagination top */}
-            <ReactPaginate
-              nextLabel="next >"
-              onPageChange={handlePageClick}
-              pageRangeDisplayed={3}
-              marginPagesDisplayed={2}
-              pageCount={pageCount}
-              previousLabel="< prev"
-              pageClassName="page-item"
-              pageLinkClassName="page-link"
-              previousClassName="page-item"
-              previousLinkClassName="page-link"
-              nextClassName="page-item"
-              nextLinkClassName="page-link"
-              breakLabel="..."
-              breakClassName="page-item"
-              breakLinkClassName="page-link"
-              containerClassName="pagination"
-              activeClassName="active"
-              renderOnZeroPageCount={null}
-            />
             {/* GRID VIEW */}
             <div className="flex items-center gap-4">
               <span

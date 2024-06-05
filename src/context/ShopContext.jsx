@@ -33,6 +33,7 @@ const ShopContextProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState(getInitialCart());
   // CartId get from userCartIdData
   const cartId = useCartIdData();
+  // const [cartId, setCartID] = useState("");
   // Loading
   const [loading, setLoading] = useState(false);
   // const [cartId, setCartId] = useState(localStorage.getItem("cartId") || null);
@@ -57,7 +58,7 @@ const ShopContextProvider = ({ children }) => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(
-          "https://api.yourrlove.com/v1/web/products?limit=36&offset=0"
+          "https://api.yourrlove.com/v1/web/products?limit=122&offset=0"
         );
         setAll_Product(response.data.metadata);
         console.log(response.data.metadata);
@@ -116,7 +117,7 @@ const ShopContextProvider = ({ children }) => {
         if (!cartId) {
           localStorage.setItem("cartId", response.data.metadata.cart_id);
         }
-
+        // setCartID(response.data.metadata.cart_id);
         setCartItems((prevCartItems) => {
           const itemIndex = prevCartItems.findIndex(
             (item) => item.product_id === itemId

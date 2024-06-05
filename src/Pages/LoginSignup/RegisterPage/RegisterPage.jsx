@@ -4,6 +4,7 @@ import axios from "axios";
 import "./RegisterPage.css";
 import { Link } from "react-router-dom";
 import ToastNotification from "../../../components/Popup/ToastNotification/ToastNotification";
+
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
     first_name: "",
@@ -22,7 +23,6 @@ const RegisterPage = () => {
       errorMessage: "First name should contain only letters!",
       label: "First Name",
       pattern: "^[a-zA-ZÀ-ÿ\\s'.,-]+$",
-      // pattern: "^[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ][a-zàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]*(?:[ ][A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ][a-zàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]*)*$",
       required: true,
     },
     {
@@ -33,22 +33,18 @@ const RegisterPage = () => {
       errorMessage: "Last name should contain only letters!",
       label: "Last name",
       pattern: "^[a-zA-ZÀ-ÿ\\s'.,-]+$",
-      // pattern: "^[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ][a-zàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]*(?:[ ][A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ][a-zàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]*)*$",
       required: true,
     },
-
     {
       id: 3,
       name: "email",
       type: "email",
       placeholder: "Enter your email",
       errorMessage: "It should be a valid email address!",
-      // pattern: "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,22}",
       pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,22}$",
       label: "Email",
       required: true,
     },
-
     {
       id: 4,
       name: "phone_number",
@@ -60,7 +56,6 @@ const RegisterPage = () => {
         "Phone number must be 10 digits long and start with '0' followed by 3, 5, 7, 8, or 9",
       required: true,
     },
-
     {
       id: 5,
       name: "password",
@@ -72,17 +67,6 @@ const RegisterPage = () => {
       pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^\\da-zA-Z]).{8,20}$",
       required: true,
     },
-
-    // {
-    //   id: 6,
-    //   name: "password",
-    //   type: "password",
-    //   placeholder: "Confirm Password",
-    //   errorMessage: "Passwords don't match!",
-    //   label: "Confirm Password",
-    //   pattern: formData.password,
-    //   required: true,
-    // },
   ];
 
   const [errors, setErrors] = useState("");
@@ -129,11 +113,9 @@ const RegisterPage = () => {
 
     if (isValid) {
       signup();
-      // setErrors("");
-      ToastNotification("Sign Up successfully", "success");
     } else {
       console.log("Errors in form", newErrors);
-      ToastNotification("Check again!!!", "error");
+      ToastNotification("Check again!!!", "User already have an account!");
     }
   };
 
@@ -153,15 +135,17 @@ const RegisterPage = () => {
       );
       if (response.data.statusCode >= 200 && response.data.statusCode < 300) {
         localStorage.setItem("auth-token", response.data.metadata);
+        ToastNotification("Sign Up successfully", "success");
         window.location.replace("/");
+      } else if (response.code === 409) {
+        // Assuming 409 is the status code for conflict (user already exists)
+        ToastNotification("User already has an account", "warning");
       } else {
-        alert(response.data.errors);
+        ToastNotification(response.data.errors, "User already has an account");
       }
     } catch (error) {
       console.error("An error occurred during sign up:", error);
-      alert(
-        "An error occurred during sign up. Please check the console for more details."
-      );
+      ToastNotification("User already has an account", "error");
     }
   };
 

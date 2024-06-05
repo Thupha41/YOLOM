@@ -39,7 +39,10 @@ const PopupViewProduct = ({ setIsOpenPopup, orderId }) => {
   }
 
   const { order, orderDetails } = orderData;
-
+  const formatDate = (dateString) => {
+    const [year, month, day] = dateString.split("-");
+    return `${day}-${month}-${year}`;
+  };
   return (
     <div
       onClick={() => {
@@ -80,7 +83,7 @@ const PopupViewProduct = ({ setIsOpenPopup, orderId }) => {
             Order #{order.order_id.slice(0, 7)}
           </h1>
           <p className="text-base dark:text-gray-300 font-medium leading-6 text-gray-600">
-            {order.createdAt.toLocaleString()}
+            {formatDate(order.createdAt)}
           </p>
           <div
             onClick={() => setIsOpenPopup(false)}

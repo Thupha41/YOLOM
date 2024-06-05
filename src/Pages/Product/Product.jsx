@@ -7,7 +7,6 @@ import DescriptionBox from "../../components/DescriptionBox/DescriptionBox";
 import Newsletter from "../../components/NewSletters/Newsletter";
 import RecentlyViewedProducts from "../../components/RecentlyViewedProducts/RecentlyViewedProducts";
 import axios from "axios";
-
 const Product = () => {
   const { all_product } = useContext(ShopContext);
   const [product, setProduct] = useState(null);
@@ -26,6 +25,7 @@ const Product = () => {
           const response = await axios.get(
             `https://api.yourrlove.com/v1/web/products/productdetails/${foundProduct.sku_id}`
           );
+          console.log("sku_id", foundProduct.sku_id);
           setProduct(response.data.metadata);
         } else {
           console.error("Product not found for slug:", Slug);
@@ -34,6 +34,7 @@ const Product = () => {
         console.error("Error fetching product:", error);
       }
     };
+
     fetchProduct();
   }, [Slug, all_product]);
 
