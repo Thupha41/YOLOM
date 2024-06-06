@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import axios from "axios";
 import "./LoginPage.css";
 import ToastNotification from "../../../components/Popup/ToastNotification/ToastNotification";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+
 const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: "",
@@ -9,6 +11,7 @@ const LoginPage = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
 
   const changeHandler = (e) => {
     const { name, value } = e.target;
@@ -125,7 +128,7 @@ const LoginPage = () => {
               </div>
 
               {/* Password field */}
-              <div>
+              <div className="relative">
                 <label
                   htmlFor="password"
                   className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -135,13 +138,19 @@ const LoginPage = () => {
                 <input
                   value={formData.password}
                   onChange={changeHandler}
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   placeholder="Enter your password"
                   className={`bg-gray-50 border ${
                     errors.password ? "input-error" : "border-gray-300"
                   } text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
                 />
+                <span
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute top-3 right-3 cursor-pointer"
+                >
+                  {showPassword ? <FaEye /> : <FaEyeSlash />}
+                </span>
                 {/* Validate Password */}
                 {errors.password && (
                   <div className="text-red-500 text-sm">{errors.password}</div>

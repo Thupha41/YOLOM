@@ -9,7 +9,7 @@ import { ShopContext } from "../../context/ShopContext";
 import nodatafound from "../../assets/NoDataFound/notdatafound.webp";
 import PopupNotification from "../../components/Popup/PopupNotification/PopupNotification";
 import useUserId from "../../hooks/useUserId";
-
+import { ClipLoader } from "react-spinners";
 const AccountSetting = () => {
   const location = useLocation();
   const username = useUserData();
@@ -27,6 +27,13 @@ const AccountSetting = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [deliveryId, setDeliveryId] = useState(null);
   const userId = useUserId();
+  const [sortOrder, setSortOrder] = useState("DESC");
+  const [loading, setLoading] = useState(false);
+
+  // State for filtering and pagination
+  const [filterStatus, setFilterStatus] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 5;
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -37,6 +44,31 @@ const AccountSetting = () => {
       setActiveSection(location.state.activeSection);
     }
   }, [location]);
+  const fetchOrderData = async () => {
+    try {
+      setLoading(true); // Set loading to true
+      const token = localStorage.getItem("auth-token");
+      const response = await axios.get(
+        `https://api.yourrlove.com/v1/web/orders/?field=updatedAt&sort=${sortOrder}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (response.data.statusCode === 200) {
+        setOrderData(response.data.metadata);
+      }
+    } catch (error) {
+      console.error("Error fetching Order Data", error);
+    } finally {
+      setLoading(false); // Set loading to false
+    }
+  };
+
+  useEffect(() => {
+    fetchOrderData();
+  }, [sortOrder, filterStatus, currentPage]);
 
   // Fetch user ID and delivery info on component mount
   useEffect(() => {
@@ -139,7 +171,12 @@ const AccountSetting = () => {
       ToastNotification("Error cancelling order", "error");
     }
   };
-
+  const handleRefresh = () => {
+    setSortOrder("DESC");
+    setFilterStatus("");
+    setCurrentPage(1);
+    fetchOrderData();
+  };
   const handleProvinceChange = (e) => {
     const provinceName = e.target.value;
     setSelectedProvince(provinceName);
@@ -276,6 +313,29 @@ const AccountSetting = () => {
   const formatDate = (dateString) => {
     const [year, month, day] = dateString.split("-");
     return `${day}-${month}-${year}`;
+  };
+
+  // Filter orders based on status
+  const filteredOrders = filterStatus
+    ? orderData.filter((order) => order.order_status === filterStatus)
+    : orderData;
+
+  // Pagination logic
+  const indexOfLastOrder = currentPage * rowsPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - rowsPerPage;
+  const currentOrders = filteredOrders.slice(
+    indexOfFirstOrder,
+    indexOfLastOrder
+  );
+
+  const totalPages = Math.ceil(filteredOrders.length / rowsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleSortChange = (e) => {
+    setSortOrder(e.target.value);
   };
 
   return (
@@ -454,119 +514,203 @@ const AccountSetting = () => {
                     </p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
-                    <table className="w-full divide-y divide-gray-200">
-                      <thead>
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                            Order ID
-                          </th>
-                          <th className="px-10 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                            Date
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                            Payment Status
-                          </th>
-                          <th className="px-8 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                            Status
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                            Total
-                          </th>
-                          <th className="px-20 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                            Action
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200 bg-white">
-                        {orderData.map((order) => (
-                          <tr key={order.order_id}>
-                            <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                              #{order.order_id.slice(0, 7)}
-                            </td>
-                            <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                              {formatDate(order.updatedAt)}
-                            </td>
-                            <td className="whitespace-nowrap px-12 py-4 text-sm font-medium text-gray-900">
-                              <span
-                                className={`text-xs font-medium me-2 px-2.5 py-0.5 rounded ${
-                                  order.order_payment_status === "Unpaid"
-                                    ? "bg-gray-300 text-gray-800"
-                                    : order.order_status === "Cancelled"
-                                    ? "bg-red-300 text-gray-800"
-                                    : order.order_status === "Paid"
-                                    ? "bg-green-300 text-gray-800"
-                                    : ""
-                                } dark:bg-gray-700 dark:text-gray-300`}
-                              >
-                                {order.order_payment_status}
-                              </span>
-                            </td>
-                            <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                              <span
-                                className={`text-xs font-medium me-2 px-2.5 py-0.5 rounded ${
-                                  order.order_status === "Pending"
-                                    ? "bg-gray-300 text-gray-800"
-                                    : order.order_status === "Cancelled"
-                                    ? "bg-red-300 text-gray-800"
-                                    : order.order_status === "Confirmed"
-                                    ? "bg-green-300 text-gray-800"
-                                    : order.order_status === "Shipping"
-                                    ? "bg-blue-300 text-gray-800"
-                                    : order.order_status === "Delivered"
-                                    ? "bg-yellow-300 text-gray-800"
-                                    : ""
-                                } dark:bg-gray-700 dark:text-gray-300`}
-                              >
-                                {order.order_status}
-                              </span>
-                            </td>
-                            <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                              {formatNumber(order.order_final_price)}đ
-                            </td>
-                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                              <button
-                                className={`rounded bg-blue-700 py-2 text-white px-4 ${
-                                  order.order_status !== "Pending"
-                                    ? "ml-6"
-                                    : "ml-6"
-                                }`}
-                                onClick={() =>
-                                  setOpenPopupOrderId(order.order_id)
-                                }
-                              >
-                                View Details
-                              </button>
-                              {openPopupOrderId === order.order_id && (
-                                <PopupViewProduct
-                                  orderId={order.order_id}
-                                  setIsOpenPopup={setOpenPopupOrderId}
-                                />
-                              )}
-                              {order.order_status === "Pending" && (
-                                <>
-                                  <PopupNotification
-                                    triggerText="Cancel"
-                                    open={orderToCancel === order.order_id}
-                                    onClose={() => setOrderToCancel(null)}
-                                    modalTitle="Cancel Notification"
-                                    confirmText="Confirm"
-                                    cancelText="Cancel"
-                                    confirmAction={() =>
-                                      handleCancelOrder(order.order_id)
-                                    }
-                                    content="Are you sure you want to cancel this order?"
-                                    triggerClassName="rounded bg-red-500 px-4 py-2 ml-4 text-white"
-                                    confirmClassName="rounded bg-blue-700 px-4 py-2 ml-4 text-white"
-                                    cancelClassName="rounded bg-gray-300 px-4 py-2 ml-4 text-gray-800"
-                                  />
-                                </>
-                              )}
-                            </td>
+                  <div>
+                    <div className="justify-between flex flex-wrap items-center gap-1">
+                      <div className="flex flex-wrap md:flex-nowrap items-center gap-6">
+                        {/* Sort by date */}
+                        <div className="flex items-center mb-4">
+                          <label className="mr-2">Sort by date:</label>
+                          <select
+                            value={sortOrder}
+                            onChange={handleSortChange}
+                            className="p-2 border rounded"
+                            style={{ width: "100px" }}
+                          >
+                            <option value="DESC">DESC</option>
+                            <option value="ASC">ASC</option>
+                          </select>
+                        </div>
+                        {/* Filter Section */}
+                        <div className="mt-4 mb-8">
+                          <span> Filter Status by: </span>
+                          <select
+                            className="px-4 py-2 border border-gray-300 rounded"
+                            value={filterStatus}
+                            onChange={(e) => {
+                              setFilterStatus(e.target.value);
+                              setCurrentPage(1);
+                            }}
+                          >
+                            <option value="">All</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Confirmed">Confirmed</option>
+                            <option value="Cancelled">Cancelled</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          className="flex items-center px-4 py-2 font-medium border-indigo-500 border tracking-wide text-black capitalize transition-colors duration-300 transform bg-transparent rounded-lg hover:bg-indigo-500 hover:text-white focus:outline-none focus:ring focus:ring-indigo-300 focus:ring-opacity-80"
+                          onClick={handleRefresh}
+                        >
+                          <svg
+                            className="w-5 h-5 mx-1"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+
+                          <span className="mx-1">Refresh</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
+                      {loading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10">
+                          <ClipLoader
+                            color={"#123abc"}
+                            loading={loading}
+                            size={50}
+                          />
+                        </div>
+                      )}
+                      <table className="w-full divide-y divide-gray-200">
+                        <thead>
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                              Order ID
+                            </th>
+                            <th className="px-10 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                              Date
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                              Payment Status
+                            </th>
+                            <th className="px-8 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                              Status
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                              Total
+                            </th>
+                            <th className="px-20 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                              Action
+                            </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200 bg-white">
+                          {currentOrders.map((order) => (
+                            <tr key={order.order_id}>
+                              <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                                #{order.order_id.slice(0, 7)}
+                              </td>
+                              <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                                {formatDate(order.updatedAt)}
+                              </td>
+                              <td className="whitespace-nowrap px-12 py-4 text-sm font-medium text-gray-900">
+                                <span
+                                  className={`text-xs font-medium me-2 px-2.5 py-0.5 rounded ${
+                                    order.order_payment_status === "Unpaid"
+                                      ? "bg-gray-300 text-gray-800"
+                                      : order.order_status === "Cancelled"
+                                      ? "bg-red-300 text-gray-800"
+                                      : order.order_status === "Paid"
+                                      ? "bg-green-300 text-gray-800"
+                                      : ""
+                                  } dark:bg-gray-700 dark:text-gray-300`}
+                                >
+                                  {order.order_payment_status}
+                                </span>
+                              </td>
+                              <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                                <span
+                                  className={`text-xs font-medium me-2 px-2.5 py-0.5 rounded ${
+                                    order.order_status === "Pending"
+                                      ? "bg-gray-300 text-gray-800"
+                                      : order.order_status === "Cancelled"
+                                      ? "bg-red-300 text-gray-800"
+                                      : order.order_status === "Confirmed"
+                                      ? "bg-green-300 text-gray-800"
+                                      : order.order_status === "Shipping"
+                                      ? "bg-blue-300 text-gray-800"
+                                      : order.order_status === "Delivered"
+                                      ? "bg-yellow-300 text-gray-800"
+                                      : ""
+                                  } dark:bg-gray-700 dark:text-gray-300`}
+                                >
+                                  {order.order_status}
+                                </span>
+                              </td>
+                              <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                                {formatNumber(order.order_final_price)}đ
+                              </td>
+                              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                <button
+                                  className={`rounded bg-blue-700 py-2 text-white px-4 ${
+                                    order.order_status !== "Pending"
+                                      ? "ml-6"
+                                      : "ml-6"
+                                  }`}
+                                  onClick={() =>
+                                    setOpenPopupOrderId(order.order_id)
+                                  }
+                                >
+                                  View Details
+                                </button>
+                                {openPopupOrderId === order.order_id && (
+                                  <PopupViewProduct
+                                    orderId={order.order_id}
+                                    setIsOpenPopup={setOpenPopupOrderId}
+                                  />
+                                )}
+                                {order.order_status === "Pending" && (
+                                  <>
+                                    <PopupNotification
+                                      triggerText="Cancel"
+                                      open={orderToCancel === order.order_id}
+                                      onClose={() => setOrderToCancel(null)}
+                                      modalTitle="Cancel Notification"
+                                      confirmText="Confirm"
+                                      cancelText="Cancel"
+                                      confirmAction={() =>
+                                        handleCancelOrder(order.order_id)
+                                      }
+                                      content="Are you sure you want to cancel this order?"
+                                      triggerClassName="rounded bg-red-500 px-4 py-2 ml-4 text-white"
+                                      confirmClassName="rounded bg-blue-700 px-4 py-2 ml-4 text-white"
+                                      cancelClassName="rounded bg-gray-300 px-4 py-2 ml-4 text-gray-800"
+                                    />
+                                  </>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Pagination */}
+                    <div className="flex justify-end mt-4">
+                      {Array.from({ length: totalPages }, (_, index) => (
+                        <button
+                          key={index}
+                          className={`mx-1 px-3 py-1 border ${
+                            currentPage === index + 1
+                              ? "bg-blue-700 text-white"
+                              : "bg-white text-gray-700"
+                          }`}
+                          onClick={() => handlePageChange(index + 1)}
+                        >
+                          {index + 1}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

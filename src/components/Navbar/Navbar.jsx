@@ -1,4 +1,10 @@
-import React, { useRef, useContext, useState, Fragment } from "react";
+import React, {
+  useRef,
+  useContext,
+  useState,
+  Fragment,
+  useEffect,
+} from "react";
 import Logo from "../../assets/logo.png";
 import SearchBar from "../SearchBar/SearchBar";
 import { FaCartShopping } from "react-icons/fa6";
@@ -103,21 +109,21 @@ const Menu = [
     ],
   },
 
+  // {
+  //   id: 3,
+  //   name: "Blogs",
+  //   link: "/blog",
+  //   dropdownLinks: [],
+  // },
   {
     id: 3,
-    name: "Blogs",
-    link: "/blog",
-    dropdownLinks: [],
-  },
-  {
-    id: 4,
     name: "About us",
     link: "/introduction/about-us",
     dropdownLinks: [],
   },
 
   {
-    id: 5,
+    id: 4,
     name: "Contact us",
     link: "/contact-us",
     dropdownLinks: [],
@@ -140,7 +146,7 @@ const Navbar = () => {
   };
 
   const username = useUserData();
-  const [results, setResults] = useState([]);
+
   return (
     <div className="relative shadow-md bg-white dark:bg-gray-900 dark:text-white duration-200 z-10">
       {/* upper Navbar */}

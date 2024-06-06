@@ -4,6 +4,8 @@ import axios from "axios";
 import "./RegisterPage.css";
 import { Link } from "react-router-dom";
 import ToastNotification from "../../../components/Popup/ToastNotification/ToastNotification";
+import { FaEye } from "react-icons/fa";
+import { IoMdEyeOff } from "react-icons/io";
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +13,7 @@ const RegisterPage = () => {
     last_name: "",
     phone_number: "",
     password: "",
+    confirmPassword: "",
     email: "",
   });
 
@@ -67,9 +70,19 @@ const RegisterPage = () => {
       pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^\\da-zA-Z]).{8,20}$",
       required: true,
     },
+    {
+      id: 6,
+      name: "confirmPassword",
+      type: "password",
+      placeholder: "Confirm your Password",
+      errorMessage: "Passwords don't match!",
+      label: "Confirm Password",
+      required: true,
+    },
   ];
 
-  const [errors, setErrors] = useState("");
+  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
 
   const validateField = (name, value) => {
     const input = inputs.find((i) => i.name === name);
@@ -84,7 +97,10 @@ const RegisterPage = () => {
     if (value && input.pattern && !new RegExp(input.pattern).test(value)) {
       return input.errorMessage;
     }
-
+    // Check password match
+    if (name === "confirmPassword" && value !== formData.password) {
+      return input.errorMessage;
+    }
     // If no conditions fail, return an empty string
     return "";
   };
@@ -94,6 +110,10 @@ const RegisterPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     const newError = validateField(name, value); // Recalculate error for this field
     setErrors((prev) => ({ ...prev, [name]: newError }));
+  };
+
+  const onPasswordChange = (e) => {
+    onChange(e);
   };
 
   const handleSubmit = (e) => {
@@ -179,44 +199,37 @@ const RegisterPage = () => {
               {/* Form Sign up */}
               <form onSubmit={handleSubmit}>
                 {inputs.map((input) => (
-                  <FormInput
-                    key={input.id}
-                    {...input}
-                    value={formData[input.name]}
-                    onChange={onChange}
-                    errorMessage={errors[input.name]}
-                  />
-                ))}
-                {/* Condition */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-start">
-                    <div className="flex items-center h-5">
-                      <input
-                        id="remember"
-                        aria-describedby="remember"
-                        type="checkbox"
-                        className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800"
-                        required=""
-                      />
-                    </div>
-                    <div className="ml-3 text-sm">
-                      <label
-                        htmlFor="remember"
-                        className="text-gray-500 dark:text-gray-300"
+                  <div key={input.id} className="relative">
+                    <FormInput
+                      {...input}
+                      value={formData[input.name]}
+                      onChange={
+                        input.name === "password" ||
+                        input.name === "confirmPassword"
+                          ? onPasswordChange
+                          : onChange
+                      }
+                      errorMessage={errors[input.name]}
+                      type={
+                        showPassword &&
+                        (input.name === "password" ||
+                          input.name === "confirmPassword")
+                          ? "text"
+                          : input.type
+                      }
+                    />
+                    {(input.name === "password" ||
+                      input.name === "confirmPassword") && (
+                      <span
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute top-3 right-3 cursor-pointer"
                       >
-                        I accept the
-                        <Link
-                          className="font-medium text-primary-600 hover:underline dark:text-primary-500"
-                          to="/customer-support#terms"
-                          onClick={() => window.scrollTo(0, 150)}
-                        >
-                          {" "}
-                          Terms and Conditions
-                        </Link>
-                      </label>
-                    </div>
+                        {showPassword ? <FaEye /> : <IoMdEyeOff />}
+                      </span>
+                    )}
                   </div>
-                </div>
+                ))}
+
                 {/* ------------ */}
                 <button type="submit">Submit</button>
 

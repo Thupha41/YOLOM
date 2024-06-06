@@ -37,6 +37,7 @@ const ShopContextProvider = ({ children }) => {
   // Loading
   const [loading, setLoading] = useState(false);
   // const [cartId, setCartId] = useState(localStorage.getItem("cartId") || null);
+  const [totalCartPrice, setTotalCartPrice] = useState(0);
   const [totalCartAmount, setTotalCartAmount] = useState(0);
   const [discountCode, setDiscountCode] = useState(getInitialDiscountCode());
   const [discountAmount, setDiscountAmount] = useState(
@@ -58,7 +59,7 @@ const ShopContextProvider = ({ children }) => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(
-          "https://api.yourrlove.com/v1/web/products?limit=122&offset=0"
+          "https://api.yourrlove.com/v1/web/products?limit=183&offset=0"
         );
         setAll_Product(response.data.metadata);
         console.log(response.data.metadata);
@@ -212,7 +213,7 @@ const ShopContextProvider = ({ children }) => {
         );
 
         const data = response.data.metadata;
-        setTotalCartAmount(data.total_price);
+        // setTotalCartAmount(data.total_price);
         console.log(data.total_price);
         setDiscountAmount(data.discount_amount || 0);
         setFinalTotalAmount(data.final_price || data.total_price);
@@ -249,6 +250,17 @@ const ShopContextProvider = ({ children }) => {
     }
   }, [cartId, discountCode, fetchTotalCartAmount]);
 
+  const calculateTotalCartAmount = useCallback(() => {
+    const totalAmount = cartItems.reduce((total, item) => {
+      return total + item.ProductDetail.Product.product_price * item.quantity;
+    }, 0);
+    setTotalCartAmount(totalAmount);
+  }, [cartItems]);
+
+  useEffect(() => {
+    calculateTotalCartAmount();
+  }, [cartItems, calculateTotalCartAmount]);
+
   useEffect(() => {
     const orderData = {
       discountCode,
@@ -279,17 +291,6 @@ const ShopContextProvider = ({ children }) => {
     return cartItems.reduce((total, item) => total + item.quantity, 0);
   }, [cartItems]);
 
-  const fetchProductDetails = useCallback(async (sku_id) => {
-    try {
-      const response = await axios.get(
-        `https://api.yourrlove.com/v1/web/products/productdetails/${sku_id}`
-      );
-      return response.data.metadata;
-    } catch (error) {
-      console.error("Error fetching product details:", error);
-      return null;
-    }
-  }, []);
   useEffect(() => {
     const fetchOrderData = async () => {
       try {
@@ -336,7 +337,6 @@ const ShopContextProvider = ({ children }) => {
       selectedPaymentMethod,
       setSelectedPaymentMethod,
       cartId,
-      fetchProductDetails,
       orderData,
       loading,
       setOrderData,
@@ -363,7 +363,6 @@ const ShopContextProvider = ({ children }) => {
       orderPhone,
       selectedPaymentMethod,
       cartId,
-      fetchProductDetails,
       orderData,
       loading,
       setOrderData,

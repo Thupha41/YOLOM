@@ -1,3 +1,4 @@
+// src/pages/Shipping/Shipping.js
 import React, { useState, useEffect, useContext } from "react";
 import { ShopContext } from "../../context/ShopContext";
 import axios from "axios";
@@ -6,6 +7,8 @@ import QuantityUpdate from "../../components/QuantityUpdate/QuantityUpdate";
 import { useNavigate, Link } from "react-router-dom";
 import { FaRegTrashCan } from "react-icons/fa6";
 import emptyCart from "../../assets/emptyCart.png";
+import ToastNotification from "../../components/Popup/ToastNotification/ToastNotification";
+import { ToastContainer } from "react-toastify";
 
 const Shipping = () => {
   const { removeFromCart, totalCartAmount, getTotalCartItems, cartItems } =
@@ -19,11 +22,7 @@ const Shipping = () => {
   const [wards, setWards] = useState([]);
   const [deliveryInfo, setDeliveryInfo] = useState(null);
   // Error Messages
-  const [errFirstName, setErrFirstName] = useState("");
-  const [errLastName, setErrLastName] = useState("");
-  const [errEmail, setErrEmail] = useState("");
   const [formError, setFormError] = useState("");
-  const [errPhone, setErrPhone] = useState("");
   const [provinceError, setProvinceError] = useState(false);
   const [errAddress, setErrAddress] = useState("");
   const [districtError, setDistrictError] = useState(false);
@@ -47,28 +46,6 @@ const Shipping = () => {
     setMessages(e.target.value);
   };
 
-  // Email Validation
-  const emailValidation = (email) => {
-    return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email);
-  };
-
-  // Name Validation
-  const firstNameValidation = (name) => {
-    return /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂễếệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/u.test(
-      name
-    );
-  };
-  const lastNameValidation = (name) => {
-    return /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂễếệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/u.test(
-      name
-    );
-  };
-
-  // Phone Validation
-  const phoneValidation = (phone) => {
-    return /^0[35789][0-9]{8}$/.test(phone);
-  };
-
   // Address Validation
   const addressValidation = (address) => {
     const regex =
@@ -79,9 +56,9 @@ const Shipping = () => {
   // Navigate
   const navigate = useNavigate();
 
-  const handleReturnToCart = () => {
+  const handleReturnToHome = () => {
     window.scrollTo(0, 0);
-    navigate("/cart");
+    navigate("/");
   };
 
   // Fetch provinces and districts
@@ -95,6 +72,7 @@ const Shipping = () => {
       console.error("Error fetching provinces data: ", error);
     }
   };
+
   useEffect(() => {
     const fetchDeliveryInfo = async () => {
       try {
@@ -146,6 +124,7 @@ const Shipping = () => {
     fetchDeliveryInfo();
     fetchProvinces();
   }, []);
+
   useEffect(() => {
     // Assuming provinces are already fetched and available
     if (selectedProvince) {
@@ -217,6 +196,7 @@ const Shipping = () => {
       },
     }));
   };
+
   // Function to render cart items
   const renderCartItems = () => {
     if (cartItems.length === 0) {
@@ -312,49 +292,14 @@ const Shipping = () => {
   // form validate
   const handleShippingForm = (e) => {
     e.preventDefault();
-    let hasError = false;
-    if (!checkoutData.shippingAddressFormData.firstName) {
-      setErrFirstName("Required");
-      hasError = true;
-    } else if (
-      !firstNameValidation(checkoutData.shippingAddressFormData.firstName)
-    ) {
-      setErrFirstName("Invalid");
-      hasError = true;
-    } else {
-      setErrFirstName("");
-    }
-    if (!checkoutData.shippingAddressFormData.lastName) {
-      setErrFirstName("Required");
-      hasError = true;
-    } else if (
-      !lastNameValidation(checkoutData.shippingAddressFormData.lastName)
-    ) {
-      setErrLastName("Invalid");
-      hasError = true;
-    } else {
-      setErrLastName("");
-    }
-    if (!checkoutData.shippingAddressFormData.email) {
-      setErrEmail("Required");
-      hasError = true;
-    } else if (!emailValidation(checkoutData.shippingAddressFormData.email)) {
-      setErrEmail("Invalid");
-      hasError = true;
-    } else {
-      setErrEmail("");
-    }
-    if (!checkoutData.shippingAddressFormData.phone) {
-      setErrPhone("Required");
-      hasError = true;
-    } else if (!phoneValidation(checkoutData.shippingAddressFormData.phone)) {
-      setErrPhone(
-        "Enter a valid phone number. It should start with 0 and contain 11 numbers"
+    if (cartItems.length === 0) {
+      ToastNotification(
+        "Your cart is empty. Please add items to the cart before continuing.",
+        "error"
       );
-      hasError = true;
-    } else {
-      setErrPhone("");
+      return;
     }
+    let hasError = false;
     // Validate province
     if (!selectedProvince) {
       setProvinceError(true);
@@ -395,26 +340,6 @@ const Shipping = () => {
       !addressValidation(checkoutData.shippingAddressFormData.address)
     ) {
       setFormError("Please input a correct format address!");
-    } else if (
-      hasError &&
-      !firstNameValidation(checkoutData.shippingAddressFormData.firstName)
-    ) {
-      setFormError("Please input a correct format name!");
-    } else if (
-      hasError &&
-      !lastNameValidation(checkoutData.shippingAddressFormData.lastName)
-    ) {
-      setFormError("Please input a correct format name!");
-    } else if (
-      hasError &&
-      !emailValidation(checkoutData.shippingAddressFormData.email)
-    ) {
-      setFormError("Please input a correct format email!");
-    } else if (
-      hasError &&
-      !phoneValidation(checkoutData.shippingAddressFormData.phone)
-    ) {
-      setFormError("Please input a correct format phone!");
     } else if (hasError) {
       setFormError("Please input all the fields required!");
     } else {
@@ -752,9 +677,9 @@ const Shipping = () => {
                     <button
                       type="button"
                       className="rounded-md px-6 py-3 w-full text-sm font-semibold bg-transparent hover:bg-gray-100 border-2 text-[#333]"
-                      onClick={handleReturnToCart}
+                      onClick={handleReturnToHome}
                     >
-                      Return to cart
+                      Return to Home
                     </button>
                     <button
                       type="button"
@@ -770,6 +695,7 @@ const Shipping = () => {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </>
   );
 };

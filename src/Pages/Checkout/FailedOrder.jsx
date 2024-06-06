@@ -7,7 +7,6 @@ import axios from "axios";
 const FailedOrder = () => {
   // Navigate
   const navigate = useNavigate();
-  const { orderData } = useContext(ShopContext);
   const handleNavigateToOrderHistory = () => {
     window.scrollTo(0, 0);
     navigate("/account", { state: { activeSection: "orderHistory" } });
