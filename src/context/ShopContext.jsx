@@ -33,11 +33,8 @@ const ShopContextProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState(getInitialCart());
   // CartId get from userCartIdData
   const cartId = useCartIdData();
-  // const [cartId, setCartID] = useState("");
   // Loading
   const [loading, setLoading] = useState(false);
-  // const [cartId, setCartId] = useState(localStorage.getItem("cartId") || null);
-  const [totalCartPrice, setTotalCartPrice] = useState(0);
   const [totalCartAmount, setTotalCartAmount] = useState(0);
   const [discountCode, setDiscountCode] = useState(getInitialDiscountCode());
   const [discountAmount, setDiscountAmount] = useState(

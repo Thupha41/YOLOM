@@ -20,7 +20,7 @@ import AccountSetting from "./Pages/AccountSetting/AccountSetting";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import NotFoundPage from "./Pages/404NotFound/404NotFound";
-
+import Invoice from "./Pages/Invoice/Invoice";
 const Layout = () => {
   return (
     <div className="app">
@@ -120,6 +120,10 @@ const router = createBrowserRouter([
       {
         path: "/contact-us",
         element: <Contact />,
+      },
+      {
+        path: "/invoice",
+        element: <Invoice />,
       },
 
       {

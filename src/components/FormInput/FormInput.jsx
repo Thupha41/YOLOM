@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import PropTypes from "prop-types";
-import './FormInput.css'
+import "./FormInput.css";
 
 const FormInput = (props) => {
   const [focused, setFocused] = useState(false);
@@ -16,11 +16,9 @@ const FormInput = (props) => {
     if (!inputRef.current.validity.valid) {
       inputRef.current.setCustomValidity(errorMessage);
     } else {
-      inputRef.current.setCustomValidity('');
+      inputRef.current.setCustomValidity("");
     }
-
   };
-
 
   return (
     <div className={`formInput ${focused ? "focused" : ""}`}>
@@ -35,7 +33,6 @@ const FormInput = (props) => {
       />
       {/* <span className="error">{errorMessage}</span> */}
       <span className="error">{errorMessage}</span>
-
     </div>
   );
 };
