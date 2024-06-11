@@ -115,20 +115,24 @@ const ShopContextProvider = ({ children }) => {
         if (!cartId) {
           localStorage.setItem("cartId", response.data.metadata.cart_id);
         }
-        // setCartID(response.data.metadata.cart_id);
+
         setCartItems((prevCartItems) => {
           const itemIndex = prevCartItems.findIndex(
-            (item) => item.product_id === itemId
+            (item) => item.sku_id === itemId
           );
           if (itemIndex !== -1) {
-            prevCartItems[itemIndex].quantity += quantity;
+            const newCartItems = [...prevCartItems];
+            newCartItems[itemIndex].quantity += quantity;
+            return newCartItems;
           } else {
-            prevCartItems.push({
-              ...response.data.metadata,
-              ProductDetail: product,
-            });
+            return [
+              ...prevCartItems,
+              {
+                ...response.data.metadata,
+                ProductDetail: product,
+              },
+            ];
           }
-          return [...prevCartItems];
         });
       } catch (error) {
         console.error("Failed to add to cart", error);
