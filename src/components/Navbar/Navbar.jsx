@@ -106,6 +106,21 @@ const Menu = [
         name: "Mango",
         link: "/new-arrival/MANGO",
       },
+      {
+        id: 8,
+        name: "MLB",
+        link: "/new-arrival/MLB",
+      },
+      {
+        id: 9,
+        name: "PUMA",
+        link: "/new-arrival/PUMA",
+      },
+      {
+        id: 10,
+        name: "FILA",
+        link: "/new-arrival/FILA",
+      },
     ],
   },
 
@@ -146,7 +161,6 @@ const Navbar = () => {
   };
 
   const username = useUserData();
-
   return (
     <div className="relative shadow-md bg-white dark:bg-gray-900 dark:text-white duration-200 z-10">
       {/* upper Navbar */}
@@ -168,10 +182,9 @@ const Navbar = () => {
             </a>
           </div>
 
-          {/* search bar */}
           <div className="flex justify-between items-center gap-4">
+            {/* search bar */}
             <SearchBar />
-
             {/* notification button */}
             <div>
               <button
@@ -374,7 +387,7 @@ const Navbar = () => {
                                           >
                                             <div className="h-32 w-32 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
                                               <Link
-                                                to={`/product/${item.ProductDetail.sku_slug}`}
+                                                to={`/product/${item.ProductDetail.sku_slug}/${item.sku_id}`}
                                                 key={item.ProductDetail.sku_id}
                                                 onClick={() => {
                                                   handleLinkClick();
@@ -415,7 +428,7 @@ const Navbar = () => {
                                                 </div>
                                                 <h3>
                                                   <Link
-                                                    to={`/product/${item.ProductDetail.sku_slug}`}
+                                                    to={`/product/${item.ProductDetail.sku_slug}/${item.sku_id}`}
                                                     key={
                                                       item.ProductDetail.sku_id
                                                     }

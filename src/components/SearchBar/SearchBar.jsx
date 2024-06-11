@@ -1,47 +1,65 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { IoMdSearch } from "react-icons/io";
 import axios from "axios";
 import { SearchResultsList } from "../SearchResultList/SearchResultsList";
+import "./SearchBar.css";
+import debounce from "lodash.debounce";
 
 const SearchBar = () => {
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchSearchResults = async () => {
-      if (searchValue.trim() === "") {
+  const fetchSearchResults = useCallback(
+    debounce(async (query) => {
+      if (query.trim() === "") {
         setSearchResults([]);
         return;
       }
       try {
         setLoading(true);
+        console.log("Fetching results for:", query);
         const response = await axios.post(
           "https://api.yourrlove.com/v1/web/products/search",
-          { query: searchValue }
+          { query }
         );
-        setSearchResults(response.data.metadata);
+
+        console.log("API Response:", response.data.metadata);
+
+        // Use Set to ensure uniqueness
+        const uniqueResults = Array.from(
+          new Set(response.data.metadata.map((a) => a.sku_id))
+        ).map((id) => {
+          return response.data.metadata.find((a) => a.sku_id === id);
+        });
+
+        console.log("Unique Results:", uniqueResults);
+
+        setSearchResults(uniqueResults);
       } catch (error) {
         console.error("Error fetching search results:", error);
       } finally {
         setLoading(false);
       }
-    };
-    fetchSearchResults();
-  }, [searchValue]);
+    }, 500),
+    []
+  );
+
+  useEffect(() => {
+    fetchSearchResults(searchValue);
+  }, [searchValue, fetchSearchResults]);
 
   const handleSearchInputChange = (event) => {
     setSearchValue(event.target.value);
   };
 
-  // Render the SearchBar and SearchResultsList components
   return (
-    <>
+    <div className="search-bar-container relative">
       <div className="relative group hidden sm:block">
         <input
           type="text"
-          placeholder="search"
-          className="w-[200px] sm:w-[200px] group-hover:w-[300px] transition-all duration-300 rounded-full border border-gray-300 px-2 py-1 focus:outline-none focus:border-1 focus:border-primary dark:border-gray-500 dark:bg-gray-800"
+          placeholder="Search for product name, color,..."
+          className="w-[300px] sm:w-[300px] transition-all duration-300 border border-gray-300 px-2 py-1 focus:outline-none focus:border-1 focus:border-primary dark:border-gray-500 dark:bg-gray-800"
           onChange={handleSearchInputChange}
           value={searchValue}
         />
@@ -72,7 +90,7 @@ const SearchBar = () => {
       {searchValue.trim() !== "" && (
         <SearchResultsList results={searchResults} />
       )}
-    </>
+    </div>
   );
 };
 

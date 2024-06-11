@@ -10,6 +10,7 @@ import "slick-carousel/slick/slick-theme.css";
 import { ShopContext } from "../../context/ShopContext";
 
 import "./ProductSlider.css";
+
 const ProductSlider = (props) => {
   const { all_product } = useContext(ShopContext);
   const [slidesToShow, setSlidesToShow] = useState(4);
@@ -19,11 +20,14 @@ const ProductSlider = (props) => {
   const filteredProducts = useMemo(
     () =>
       all_product
-        .filter((el) => el.Product.Tag && el.Product.Tag.name === props.Tag)
+        .filter(
+          (el) =>
+            el.Product && el.Product.Tag && el.Product.Tag.name === props.Tag
+        )
         .slice(0, 8),
     [all_product, props.Tag]
   );
-  console.log("find", filteredProducts);
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1280) {
@@ -108,14 +112,14 @@ const ProductSlider = (props) => {
               <CardItem
                 key={el.sku_id}
                 sku_slug={el.sku_slug}
-                id={el.product_id}
+                sku_id={el.sku_id}
                 thumbnail={el.sku_image}
-                name={el.Product.product_name}
-                brand={el.Product.Brand.name}
-                current_unit_price={el.Product.product_price}
+                name={el.Product?.product_name}
+                brand={el.Product?.Brand?.name}
+                current_unit_price={el.Product?.product_price}
                 oldPrice={el.oldPrice || ""}
-                labelType={el.Product.Tag.label}
-                rating={el.Product.product_rating}
+                labelType={el.Product?.Tag?.label}
+                rating={el.Product?.product_rating}
               />
             ))}
           </Slider>

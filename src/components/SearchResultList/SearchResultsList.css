@@ -8,8 +8,49 @@
   margin-top: 0.5rem;
   max-height: 300px;
   overflow-y: auto;
-  position: absolute; /* Make the dropdown position absolute */
-  top: 100%; /* Position it right below the search bar */
+  position: absolute;
+  top: 100%;
   left: 0;
-  z-index: 10; /* Ensure it appears above other elements */
+  z-index: 10;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.result-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: black;
+}
+
+.result-image {
+  width: 50px;
+  height: 50px;
+  margin-right: 10px;
+}
+
+.result-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.product-name {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.product-attributes {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.attribute {
+  font-size: 14px;
+  color: gray;
 }

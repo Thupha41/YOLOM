@@ -250,7 +250,7 @@ const ShopCategory = (props) => {
     return products.map((product) => (
       <CardItem
         key={product.sku_id}
-        id={product.Product.product_id}
+        sku_id={product.sku_id}
         thumbnail={product.sku_image}
         name={product.Product.product_name}
         oldPrice={product.oldPrice}

@@ -7,19 +7,27 @@ import DescriptionBox from "../../components/DescriptionBox/DescriptionBox";
 import Newsletter from "../../components/NewSletters/Newsletter";
 import RecentlyViewedProducts from "../../components/RecentlyViewedProducts/RecentlyViewedProducts";
 import axios from "axios";
+
 const Product = () => {
   const { all_product } = useContext(ShopContext);
   const [product, setProduct] = useState(null);
-  const { Slug } = useParams();
+  const { Slug, skuId } = useParams();
 
   useEffect(() => {
-    // Fetch product data when component mounts
     const fetchProduct = async () => {
       try {
-        // Find the product based on slug
-        const foundProduct = all_product.find(
-          (product) => product.sku_slug === Slug
-        );
+        // Find the product based on slug and skuId
+        let foundProduct;
+        if (skuId) {
+          foundProduct = all_product.find(
+            (product) => product.sku_id === skuId
+          );
+        } else {
+          foundProduct = all_product.find(
+            (product) => product.sku_slug === Slug
+          );
+        }
+
         if (foundProduct) {
           // If product is found, fetch its details
           const response = await axios.get(
@@ -36,7 +44,7 @@ const Product = () => {
     };
 
     fetchProduct();
-  }, [Slug, all_product]);
+  }, [Slug, skuId, all_product]);
 
   if (!product) {
     return (

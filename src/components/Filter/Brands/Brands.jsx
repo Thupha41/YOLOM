@@ -1,11 +1,22 @@
-import React, {useState} from 'react';
-import Input from '../../Input/Input';
+import React, { useState } from "react";
+import Input from "../../Input/Input";
 import { motion } from "framer-motion";
-import './Brands.css'
-import PropTypes from 'prop-types'
-import NavTitle from '../NavTitle/NavTitle';
+import "./Brands.css";
+import PropTypes from "prop-types";
+import NavTitle from "../NavTitle/NavTitle";
 const Brands = ({ handleFilterChange, checkedState }) => {
-  const brands = ['Mango', 'GAP', 'Levi\'s', 'Banana_Republic', 'Old Navy', 'O21_CTTT', 'Cotton On'];
+  const brands = [
+    "Mango",
+    "GAP",
+    "Levi's",
+    "Banana_Republic",
+    "Old Navy",
+    "O21_CTTT",
+    "Cotton On",
+    "MLB",
+    "PUMA",
+    "FILA",
+  ];
   const [showBrands, setShowBrands] = useState(true);
 
   return (
@@ -16,7 +27,7 @@ const Brands = ({ handleFilterChange, checkedState }) => {
       >
         <NavTitle title="Brands" icons={true} isOpen={showBrands} />
       </div>
-      
+
       {showBrands && (
         <motion.div
           initial={{ y: -20, opacity: 0 }}
@@ -24,7 +35,7 @@ const Brands = ({ handleFilterChange, checkedState }) => {
           transition={{ duration: 0.5 }}
         >
           <ul className="flex flex-col gap-4 text-sm lg:text-base text-[#767676]">
-            {brands.map(brand => (
+            {brands.map((brand) => (
               <li
                 key={brand}
                 className="border-b-[1px] border-b-[#F0F0F0] pb-2 flex items-center gap-2 hover:text-black hover:border-gray-400 duration-300"
@@ -41,7 +52,6 @@ const Brands = ({ handleFilterChange, checkedState }) => {
           </ul>
         </motion.div>
       )}
-      
     </div>
   );
 };
@@ -50,5 +60,5 @@ Brands.propTypes = {
   handleFilterChange: PropTypes.func.isRequired,
   checkedState: PropTypes.object.isRequired,
 };
-  
+
 export default Brands;

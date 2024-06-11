@@ -219,7 +219,7 @@ const Shipping = () => {
         >
           <div className="px-0 py-0 shrink-0 bg-gray-50 rounded-md">
             <Link
-              to={`/product/${item.ProductDetail.sku_slug}`}
+              to={`/product/${item.ProductDetail.sku_slug}/${item.sku_id}`}
               key={item.ProductDetail.sku_id}
               onClick={() => {
                 window.scrollTo(0, 0);

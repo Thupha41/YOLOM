@@ -56,7 +56,7 @@ const ShopContextProvider = ({ children }) => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(
-          "https://api.yourrlove.com/v1/web/products?limit=183&offset=0"
+          "https://api.yourrlove.com/v1/web/products?limit=174&offset=0"
         );
         setAll_Product(response.data.metadata);
         console.log(response.data.metadata);

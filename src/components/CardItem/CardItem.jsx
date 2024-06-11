@@ -58,7 +58,7 @@ const CardItem = (props) => {
         >
           {/* Change the src based on isHovered state */}
           <Link
-            to={`/product/${sku_slug}`}
+            to={`/product/${sku_slug}/${sku_id}`}
             onClick={() => window.scrollTo(0, 0)}
           >
             <img
@@ -75,7 +75,7 @@ const CardItem = (props) => {
             <br />
           </strong>
           <Link
-            to={`/product/${sku_slug}`}
+            to={`/product/${sku_slug}/${sku_id}`}
             onClick={() => window.scrollTo(0, 0)}
           >
             {name}
