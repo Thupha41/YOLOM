@@ -15,7 +15,7 @@ const ProductDisplay = (props) => {
   const [mainImage, setMainImage] = useState(thumbnails[0]);
   const [quantity, setQuantity] = useState(1);
   const [email, setEmail] = useState("");
-  const [notify, setNotify] = useState(false);
+
   useEffect(() => {
     addRecentlyViewedProduct(product); // Add the product to the recently viewed list
     if (!thumbnails.includes(mainImage)) {
@@ -23,11 +23,14 @@ const ProductDisplay = (props) => {
     }
   }, [product, thumbnails, mainImage]);
 
-  const zoom = {
-    width: 400,
-    height: 500,
-    zoomWidth: 500,
+  const zoomConfig = {
+    width: 500,
+    height: 600,
+    zoomWidth: 1000,
+    scale: 0.5,
     img: mainImage,
+    zoomStyle: "border: 1px solid #ccc; border-radius: 10px;", // Add custom styles
+    zoomLensStyle: "opacity: 0.4; background-color: white;", // Customize the zoom lens style
   };
 
   window.onbeforeunload = function () {
@@ -42,6 +45,7 @@ const ProductDisplay = (props) => {
   const currentProduct = product.sku_id;
   const isOutOfStock = currentProduct && productInCart >= product.sku_quantity;
   console.log(product.sku_quantity);
+
   const handleQuantityChange = (e) => {
     setQuantity(e.target.value);
   };
@@ -88,7 +92,7 @@ const ProductDisplay = (props) => {
         {/* Main image */}
         <div className="main-product-image">
           <div>
-            <ReactImageZoom {...zoom} />
+            <ReactImageZoom {...zoomConfig} />
           </div>
         </div>
       </div>
@@ -125,20 +129,6 @@ const ProductDisplay = (props) => {
         </div>
         <div className="mt-4">Color: {product.sku_color}</div>
         <div className="mt-4">Size: {product.sku_size}</div>
-        {/* Size selection */}
-        {/* <div className="mt-5">
-          <h3 className="text-gray-600 text-lg font-semibold">Select size</h3>
-          <div className="flex mt-3 justify-center gap-2">
-            {["S", "M", "L", "XL", "XXL"].map((size) => (
-              <div
-                key={size}
-                className="py-1 px-4 bg-gray-300 border border-gray-300 cursor-pointer text-black hover:text-white hover:bg-black transition-colors duration-300 ease-in-out"
-              >
-                {size}
-              </div>
-            ))}
-          </div>
-        </div> */}
 
         {/* Quantity input */}
         <div

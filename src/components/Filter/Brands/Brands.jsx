@@ -16,6 +16,7 @@ const Brands = ({ handleFilterChange, checkedState }) => {
     "MLB",
     "PUMA",
     "FILA",
+    "DSQUARE2",
   ];
   const [showBrands, setShowBrands] = useState(true);
 

@@ -107,7 +107,7 @@ const Payment = () => {
       );
 
       const data = response.data.metadata;
-
+      console.log(data);
       window.alert("Order created successfully!");
       window.scrollTo(0, 0);
 

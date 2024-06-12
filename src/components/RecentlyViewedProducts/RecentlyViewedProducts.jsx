@@ -91,7 +91,7 @@ const RecentlyViewedProducts = () => {
             <div className="px-2" key={product.sku_id}>
               {product.Product && (
                 <CardItem
-                  id={product.Product.product_id}
+                  sku_id={product.sku_id}
                   thumbnail={product.sku_image}
                   name={product.Product.product_name}
                   oldPrice={product.oldPrice}

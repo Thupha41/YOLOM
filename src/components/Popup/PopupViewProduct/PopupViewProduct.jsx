@@ -126,7 +126,7 @@ const PopupViewProduct = ({ setIsOpenPopup, orderId }) => {
                   </div>
                   <div className="border-b border-gray-200 md:flex-row flex-col flex justify-between items-start w-full pb-6 space-y-3 md:space-y-0">
                     <div className="w-full flex flex-col justify-start items-start space-y-6">
-                      <h3 className="text-lg xl:text-xl font-semibold leading-5 text-gray-800">
+                      <h3 className="text-md xl:text-md font-semibold leading-5 text-gray-800">
                         {detail.ProductDetail?.Product?.product_name}
                       </h3>
                       <div className="flex justify-start items-start flex-col space-y-1">
